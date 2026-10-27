@@ -23,9 +23,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
 
@@ -40,8 +37,9 @@ jobs:
           cp -r icons/* android/app/src/main/assets/icons/
           echo "Web assets successfully bundled into Android app!"
 
-      - name: Build Debug APK
+      - name: Accept Android SDK Licenses & Build APK
         run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
           cd android
           gradle wrapper --gradle-version 8.2
           chmod +x gradlew
