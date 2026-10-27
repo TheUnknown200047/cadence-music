@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="cadence-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="50%" stop-color="#c084fc"/>
+      <stop offset="100%" stop-color="#ec4899"/>
+    </linearGradient>
+    <linearGradient id="disc-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#181b26"/>
+      <stop offset="100%" stop-color="#0b0d13"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Modern Smooth Squircle Mask with Curved Rounded Corners (Transparent Outside) -->
+  <rect x="4" y="4" width="120" height="120" rx="32" ry="32" fill="#0d0f17" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
+
+  <!-- Vinyl Grooves -->
+  <circle cx="64" cy="64" r="48" fill="url(#disc-grad)" stroke="#222638" stroke-width="2"/>
+  <circle cx="64" cy="64" r="40" fill="none" stroke="#1d2130" stroke-width="1.5" opacity="0.8"/>
+  <circle cx="64" cy="64" r="32" fill="none" stroke="#252a3d" stroke-width="1.5" opacity="0.6"/>
+  <circle cx="64" cy="64" r="24" fill="none" stroke="#1a1d2b" stroke-width="1.5" opacity="0.9"/>
+
+  <!-- Vibrant Center Spindle (Holographic Violet-Pink Glow) -->
+  <circle cx="64" cy="64" r="16" fill="url(#cadence-grad)" filter="url(#glow)"/>
+  <circle cx="64" cy="64" r="6" fill="#07080c" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
+</svg>

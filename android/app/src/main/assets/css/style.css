@@ -369,14 +369,12 @@ input[type="range"] {
 
 /* Side Floating Song Cover & Video Panel */
 #video-panel {
-  position: fixed !important;
-  bottom: 104px !important;
-  right: 24px !important;
-  left: auto !important;
-  top: auto !important;
-  z-index: 45 !important;
+  position: fixed;
+  bottom: 104px;
+  right: 24px;
+  z-index: 45;
   cursor: grab;
-  transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s ease, height 0.3s ease, opacity 0.28s ease, transform 0.28s ease;
+  touch-action: none;
   user-select: none;
 }
 #video-panel.video-hidden {
@@ -391,17 +389,22 @@ input[type="range"] {
 
 /* SONG MODE: Pure Square, Curved Corners, NO Black Bezels, Zero Overlay */
 #video-panel.song-card-mode {
-  width: 240px;
-  height: 240px;
+  width: 220px;
+  height: 220px;
   aspect-ratio: 1 / 1;
-  border-radius: 1.25rem !important;
-  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow: 0 20px 45px rgba(0, 0, 0, 0.85), 0 0 25px rgba(139, 92, 246, 0.15);
-  background: transparent !important;
-  left: auto !important;
-  top: auto !important;
-  bottom: 104px !important;
-  right: 24px !important;
+  background: transparent;
+}
+@media (max-width: 640px) {
+  #video-panel.song-card-mode {
+    width: 140px;
+    height: 140px;
+    border-radius: 1rem;
+    bottom: 84px;
+    right: 12px;
+  }
 }
 
 #video-panel.song-card-mode #floating-cover-layer {

@@ -25,6 +25,12 @@ class YouTubeAudioPlayer {
     this.videoProgressInterval = null;
     this.equalizer = (typeof AudioEqualizerEngine !== 'undefined') ? new AudioEqualizerEngine(this.audio) : null;
 
+    // Silent audio anchor keeps mobile Android audio thread alive when screen turns off
+    try {
+      this.silentAnchor = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
+      this.silentAnchor.loop = true;
+    } catch (e) {}
+
     this._initAudioEvents();
     this._initAPI();
   }
@@ -208,13 +214,35 @@ class YouTubeAudioPlayer {
   }
 
   _onPlayerStateChange(event) {
-    if (this.mode === 'song') {
-      // CRITICAL: When in song mode, the YouTube iframe MUST NOT play audio
-      if (event.data === window.YT.PlayerState.PLAYING) {
-        try {
-          this.player.pauseVideo();
-        } catch (e) {}
+    if (event.data === window.YT.PlayerState.PLAYING) {
+      this.isPlayingState = true;
+      this._startVideoProgressTicker();
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'playing';
       }
+    } else if (event.data === window.YT.PlayerState.PAUSED) {
+      // If the phone screen locked, YouTube may fire an involuntary pause.
+      // If the user did NOT click pause (isPlayingState is true), resume immediately!
+      if (this.isPlayingState && this.currentTrack) {
+        setTimeout(() => {
+          if (this.isPlayingState && this.player && typeof this.player.playVideo === 'function') {
+            this.player.playVideo();
+          }
+        }, 150);
+      } else {
+        this.isPlayingState = false;
+        this._stopVideoProgressTicker();
+        if ('mediaSession' in navigator) {
+          navigator.mediaSession.playbackState = 'paused';
+        }
+      }
+    } else if (event.data === window.YT.PlayerState.ENDED) {
+      this.isPlayingState = false;
+      this._stopVideoProgressTicker();
+      this.onTrackEndCallbacks.forEach(cb => cb());
+    }
+    this.onStateChangeCallbacks.forEach(cb => cb(event.data, this.isPlayingState));
+    if (this.mode === 'song' && !this.audio.src.includes('/api/stream/')) {
       return;
     }
 
@@ -264,12 +292,20 @@ class YouTubeAudioPlayer {
 
   _fallbackToIFrame(ytId) {
     if (this.player && this.isReady) {
-      this.mode = 'video';
       if (this.audio) {
         this.audio.pause();
       }
       try {
-        this.player.loadVideoById(ytId);
+        if (typeof this.player.unMute === 'function') this.player.unMute();
+        if (typeof this.player.setVolume === 'function') this.player.setVolume(this.volume);
+        if (ytId) {
+          this.player.loadVideoById(ytId);
+        } else if (this.currentTrack && typeof this.player.loadPlaylist === 'function') {
+          this.player.loadPlaylist({
+            list: ${this.currentTrack.artist || ''}  audio,
+            listType: 'search'
+          });
+        }
         this.player.playVideo();
         this.isPlayingState = true;
       } catch (e) {}
@@ -493,6 +529,9 @@ class YouTubeAudioPlayer {
   }
 
   play() {
+    if (this.silentAnchor) {
+      this.silentAnchor.play().catch(() => {});
+    }
     if (this.equalizer) this.equalizer.resume();
     if (this.mode === 'song') {
       // Stop and pause YouTube iframe so ONLY the native studio audio plays

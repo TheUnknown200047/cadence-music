@@ -12,9 +12,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Cadence">
-  <link rel="apple-touch-icon" href="/icons/icon-192.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -45,6 +46,15 @@
       }
     }
   </script>
+  <!-- Persistent Background Audio when Phone is Locked / Closed -->
+  <script>
+    try {
+      Object.defineProperty(document, 'hidden', { get: () => false, configurable: true });
+      Object.defineProperty(document, 'visibilityState', { get: () => 'visible', configurable: true });
+      window.addEventListener('visibilitychange', (e) => e.stopImmediatePropagation(), true);
+      document.addEventListener('visibilitychange', (e) => e.stopImmediatePropagation(), true);
+    } catch (e) {}
+  </script>
 </head>
 <body class="bg-ytm-black text-white flex flex-col h-screen select-none overflow-hidden relative">
 
@@ -69,7 +79,7 @@
         </div>
         <span class="font-black text-lg md:text-xl tracking-tight flex items-center gap-2 font-tech">
           <span class="bg-gradient-to-r from-white via-zinc-100 to-zinc-400 bg-clip-text text-transparent">Cadence</span>
-          <span class="text-[9px] md:text-[10px] uppercase font-mono-code font-bold tracking-wider px-2 py-0.5 rounded-full theme-accent-pill">Vinyl Deck</span>
+          <span class="hidden sm:inline-flex text-[9px] md:text-[10px] uppercase font-mono-code font-bold tracking-wider px-2 py-0.5 rounded-full theme-accent-pill whitespace-nowrap">Vinyl Deck</span>
         </span>
       </a>
     </div>
@@ -311,7 +321,7 @@
           <div class="relative z-10 grid grid-cols-12 gap-6 items-center">
 
             <!-- LEFT ARC: SONIC MOOD DIALS & LOSSLESS DAC -->
-            <div class="col-span-12 lg:col-span-3 space-y-4">
+            <div class="hidden lg:block col-span-12 lg:col-span-3 space-y-4">
               <div class="border-b border-zinc-800 pb-2 flex items-center justify-between">
                 <span class="text-[11px] font-mono-code uppercase tracking-wider text-zinc-400">Sonic Dial / Moods</span>
                 <span class="flex items-center gap-1.5 text-[10px] text-emerald-400 font-mono-code">
@@ -454,7 +464,7 @@
             </div>
 
             <!-- RIGHT ARC: NEXT IN SATELLITE ORBIT (LIVE QUEUE PREVIEW) -->
-            <div class="col-span-12 lg:col-span-3 space-y-4">
+            <div class="hidden lg:block col-span-12 lg:col-span-3 space-y-4">
               <div class="border-b border-zinc-800 pb-2 flex items-center justify-between">
                 <span class="text-[11px] font-mono-code uppercase tracking-wider text-zinc-400">Up Next In Orbit</span>
                 <button onclick="app.toggleQueue(true)" class="text-xs text-violet-400 font-bold hover:underline cursor-pointer">Full Queue →</button>
@@ -999,6 +1009,10 @@
 
         <!-- Hover-Only Controls (Zero overlay when not hovering) -->
         <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 group-hover/panel:opacity-100 transition-opacity duration-200 flex flex-col justify-between p-2.5 z-20">
+          <!-- Mobile Permanent Close Button -->
+          <button onclick="app.closeFloatingPanel(event)" class="absolute top-2 right-2 z-30 p-1.5 rounded-full bg-black/80 hover:bg-black text-white shadow-lg border border-white/20 active:scale-90 transition-transform" title="Dismiss Card">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
           <!-- Top Controls on Hover -->
           <div class="flex items-center justify-between w-full">
             <span class="text-[10px] font-bold text-white/90 px-2 py-0.5 rounded-full bg-black/60 border border-white/10 flex items-center gap-1">
@@ -1178,10 +1192,7 @@
         <i data-lucide="search" class="w-5 h-5"></i>
         <span class="text-[10px] font-semibold">Search</span>
       </button>
-      <button class="mobile-nav-btn flex flex-col items-center gap-1 text-zinc-400 hover:text-white py-1 px-3 transition-colors" data-view="explore" onclick="app.navigate('explore')">
-        <i data-lucide="compass" class="w-5 h-5"></i>
-        <span class="text-[10px] font-semibold">Explore</span>
-      </button>
+
       <button class="mobile-nav-btn flex flex-col items-center gap-1 text-zinc-400 hover:text-white py-1 px-3 transition-colors" data-view="library" onclick="app.navigate('library')">
         <i data-lucide="library" class="w-5 h-5"></i>
         <span class="text-[10px] font-semibold">Library</span>
