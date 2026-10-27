@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -16,7 +17,10 @@ import androidx.appcompat.app.AppCompatActivity;
 public class MainActivity extends AppCompatActivity {
 
     private WebView webView;
-    private static final String APP_URL = "file:///android_asset/index.html";
+    // Live Cloud Endpoint for Instant Automatic Updates
+    private static final String LIVE_URL = "https://theunknown200047.github.io/cadence-music/";
+    // Offline local fallback bundled inside the APK
+    private static final String FALLBACK_URL = "file:///android_asset/index.html";
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -56,11 +60,20 @@ public class MainActivity extends AppCompatActivity {
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 return false;
             }
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                // If phone is offline, fall back to local assets seamlessly
+                if (request.isForMainFrame()) {
+                    view.loadUrl(FALLBACK_URL);
+                }
+            }
         });
 
         webView.setWebChromeClient(new WebChromeClient());
 
-        webView.loadUrl(APP_URL);
+        // Launch live stream with automatic OTA updates
+        webView.loadUrl(LIVE_URL);
     }
 
     @Override
