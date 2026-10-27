@@ -1,0 +1,2355 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="referrer" content="no-referrer-when-downgrade">
+  <title>Cadence Music</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#07080c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Cadence">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Custom Styling -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500;700&family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            ytm: {
+              black: '#030303',
+              dark: '#0f0f0f',
+              surface: '#181818',
+              card: '#212121',
+              hover: '#2a2a2a',
+              red: '#ff0000',
+              muted: '#aaaaaa'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-ytm-black text-white flex flex-col h-screen select-none overflow-hidden relative">
+
+  <!-- DYNAMIC AMBIENT BACKDROP LAYER (Make Background feature) -->
+  <div id="ambient-backdrop" class="fixed inset-0 pointer-events-none z-0 transition-opacity duration-700 opacity-0 bg-cover bg-center">
+    <div class="absolute inset-0 bg-black/75 backdrop-blur-3xl"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-[#07080c] via-[#07080c]/85 to-[#07080c]/70"></div>
+  </div>
+
+  <!-- TOP APP BAR / HEADER -->
+  <header class="h-14 md:h-16 border-b border-zinc-800/80 px-3 md:px-6 flex items-center justify-between z-30 shrink-0 bg-[#07080c]/90 backdrop-blur-xl relative">
+    <!-- Left Logo & Hamburger -->
+    <div class="flex items-center gap-2.5 md:gap-4">
+      <button id="toggle-sidebar-btn" class="p-2 hover:bg-zinc-800/80 rounded-xl text-zinc-300 hover:text-white transition-all" title="Toggle Sidebar">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+      </button>
+
+      <a href="#" class="flex items-center gap-2.5 cursor-pointer group" onclick="app.navigate('home')">
+        <!-- Cadence Logo Mark -->
+        <div class="w-8 h-8 rounded-xl theme-accent-gradient flex items-center justify-center text-white shadow-lg theme-avatar-ring group-hover:scale-105 transition-transform">
+          <i data-lucide="disc" class="w-4 h-4 text-white"></i>
+        </div>
+        <span class="font-black text-lg md:text-xl tracking-tight flex items-center gap-2 font-tech">
+          <span class="bg-gradient-to-r from-white via-zinc-100 to-zinc-400 bg-clip-text text-transparent">Cadence</span>
+          <span class="text-[9px] md:text-[10px] uppercase font-mono-code font-bold tracking-wider px-2 py-0.5 rounded-full theme-accent-pill">Vinyl Deck</span>
+        </span>
+      </a>
+    </div>
+
+    <!-- Center Search Bar (Desktop) -->
+    <div class="flex-1 max-w-xl mx-4 relative hidden sm:block" id="desktop-search-container">
+      <div class="relative flex items-center">
+        <i data-lucide="search" class="w-4 h-4 absolute left-3.5 theme-accent-color pointer-events-none"></i>
+        <input 
+          id="global-search-input"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          type="text" 
+          placeholder="Search 100M+ tracks, albums, or paste song link..." 
+          class="w-full bg-zinc-900/70 hover:bg-zinc-900 focus:bg-zinc-900 text-xs sm:text-sm text-white placeholder-zinc-500 rounded-full pl-10 pr-24 py-2 outline-none border border-zinc-800/80 focus:border-zinc-500 transition-all shadow-inner"
+        >
+        <button id="clear-search-btn" class="absolute right-24 text-zinc-400 hover:text-white hidden p-1">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+        <button 
+          id="quick-url-btn" 
+          class="absolute right-1.5 theme-accent-pill text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1.5 transition-all shadow-sm"
+          title="Play by YouTube URL / Video ID"
+        >
+          <i data-lucide="link" class="w-3 h-3"></i>
+          <span>Play Link</span>
+        </button>
+      </div>
+
+      <!-- Recent Search History Dropdown (Desktop) -->
+      <div id="search-history-dropdown" class="hidden absolute left-0 right-0 top-full mt-2 bg-[#10121a]/95 backdrop-blur-xl border border-zinc-700/80 rounded-2xl shadow-2xl overflow-hidden z-50 py-2">
+        <div class="flex items-center justify-between px-3.5 py-1.5 border-b border-zinc-800/80 text-[11px] font-mono-code text-zinc-400">
+          <span class="flex items-center gap-1.5">
+            <i data-lucide="clock" class="w-3.5 h-3.5 text-violet-400"></i>
+            <span>Recent Searches</span>
+          </span>
+          <button onclick="app.clearSearchHistory()" class="text-zinc-500 hover:text-rose-400 transition-colors">Clear all</button>
+        </div>
+        <div id="search-history-list" class="max-h-64 overflow-y-auto divide-y divide-zinc-800/40">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Controls / Search on Mobile / User Avatar -->
+    <div class="flex items-center gap-2 md:gap-3">
+      <!-- Search Icon Button for Mobile -->
+      <button id="mobile-search-btn" onclick="app.toggleMobileSearch(true)" class="p-2 sm:hidden hover:bg-zinc-800 rounded-full text-zinc-300 hover:text-white transition-colors" title="Search">
+        <i data-lucide="search" class="w-5 h-5"></i>
+      </button>
+
+      <button id="cast-btn" class="p-2 hover:bg-zinc-800 rounded-xl text-zinc-400 hover:text-white transition-colors" title="Cast Audio">
+        <i data-lucide="cast" class="w-4 h-4"></i>
+      </button>
+      
+      <button id="add-track-modal-btn" class="hidden md:flex items-center gap-1.5 bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 hover:border-violet-500/40 px-3 py-1.5 rounded-xl text-xs font-semibold text-zinc-200 hover:text-white transition-all shadow-sm">
+        <i data-lucide="plus" class="w-3.5 h-3.5 text-violet-400"></i>
+        <span>Add Song</span>
+      </button>
+
+      <!-- User / Account System Button & Dropdown -->
+      <div id="header-user-container" class="relative flex items-center">
+        <!-- Logged Out Button -->
+        <button 
+          id="header-login-btn" 
+          onclick="app.openAuthModal('login')" 
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-xs font-semibold text-white border border-white/15 transition-all shadow-sm active:scale-95"
+          title="Sign in to sync with your phone"
+        >
+          <i data-lucide="user" class="w-3.5 h-3.5"></i>
+          <span>Sign In</span>
+        </button>
+
+        <!-- Logged In Avatar (shown when user is authenticated) -->
+        <div 
+          id="header-user-btn" 
+          onclick="app.toggleUserMenu()" 
+          class="hidden flex items-center gap-2 p-1 pl-1.5 pr-2.5 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800/80 hover:border-zinc-700 cursor-pointer transition-all shadow-sm select-none"
+        >
+          <div id="header-user-avatar" class="w-7 h-7 rounded-lg theme-accent-gradient flex items-center justify-center font-bold text-xs text-white shadow-sm overflow-hidden shrink-0">
+            <span id="header-user-initial">U</span>
+          </div>
+          <span id="header-user-name" class="text-xs font-semibold text-zinc-200 hidden md:inline-block max-w-[100px] truncate">User</span>
+          <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0 shadow-sm" title="Cloud Synced"></span>
+        </div>
+
+        <!-- User Quick Menu Dropdown -->
+        <div id="header-user-menu" class="hidden absolute right-0 top-full mt-2 w-56 bg-[#10121a]/95 backdrop-blur-xl border border-zinc-800 rounded-2xl shadow-2xl p-2 z-50 text-xs font-medium space-y-1 animate-in fade-in zoom-in-95 duration-150">
+          <div class="px-3 py-2 border-b border-zinc-800/80 mb-1">
+            <div id="user-menu-display-name" class="font-bold text-sm text-white truncate">User Name</div>
+            <div id="user-menu-username" class="text-[11px] text-zinc-400 font-mono-code truncate">@username</div>
+            <div class="flex items-center gap-1.5 mt-1 text-[10px] text-emerald-400 font-mono-code">
+              <i data-lucide="cloud" class="w-3 h-3"></i>
+              <span id="user-menu-sync-status">Cloud Synced</span>
+            </div>
+          </div>
+          <button onclick="app.manualSyncCloud(); app.toggleUserMenu(false)" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-colors">
+            <i data-lucide="refresh-cw" class="w-4 h-4 text-cyan-400"></i>
+            <span>Sync Library Now</span>
+          </button>
+          <button onclick="app.openSettingsModal(); app.toggleUserMenu(false)" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-800/80 transition-colors">
+            <i data-lucide="settings" class="w-4 h-4 text-violet-400"></i>
+            <span>Settings & Theme</span>
+          </button>
+          <button onclick="app.logout(); app.toggleUserMenu(false)" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-950/30 transition-colors border-t border-zinc-800/80 pt-2 mt-1">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+            <span>Sign Out</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expandable Mobile Search Bar Overlay -->
+    <div id="mobile-search-bar" class="absolute inset-0 bg-[#07080c] px-3 flex items-center gap-2 z-50 hidden sm:hidden border-b border-zinc-800">
+      <button onclick="app.toggleMobileSearch(false)" class="p-2 text-zinc-400 hover:text-white">
+        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+      </button>
+      <div class="relative flex-1 flex items-center" id="mobile-search-container">
+        <i data-lucide="search" class="w-4 h-4 absolute left-3 text-zinc-500 pointer-events-none"></i>
+        <input 
+          id="mobile-search-input"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          type="text" 
+          placeholder="Search songs, artists, links..." 
+          class="w-full bg-zinc-900 text-sm text-white placeholder-zinc-500 rounded-full pl-9 pr-9 py-2 outline-none border border-zinc-700 focus:border-violet-500"
+        >
+        <button id="mobile-clear-search-btn" onclick="app.clearMobileSearch()" class="absolute right-2.5 text-zinc-400 hover:text-white hidden p-1">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Recent Search History Dropdown (Mobile) -->
+        <div id="mobile-search-history-dropdown" class="hidden absolute left-0 right-0 top-full mt-2 bg-[#10121a]/95 backdrop-blur-xl border border-zinc-700/80 rounded-2xl shadow-2xl overflow-hidden z-50 py-2">
+          <div class="flex items-center justify-between px-3.5 py-1.5 border-b border-zinc-800/80 text-[11px] font-mono-code text-zinc-400">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="clock" class="w-3.5 h-3.5 text-violet-400"></i>
+              <span>Recent Searches</span>
+            </span>
+            <button onclick="app.clearSearchHistory()" class="text-zinc-500 hover:text-rose-400 transition-colors">Clear all</button>
+          </div>
+          <div id="mobile-search-history-list" class="max-h-52 overflow-y-auto divide-y divide-zinc-800/40">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- BODY: SIDEBAR + MAIN VIEW -->
+  <div id="app-body-container" class="flex flex-1 overflow-x-clip overflow-y-hidden relative w-full">
+
+    <!-- MOBILE SIDEBAR BACKDROP -->
+    <div id="sidebar-backdrop" onclick="app.toggleSidebar(false)" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden md:hidden"></div>
+
+    <!-- LEFT NAVIGATION SIDEBAR (Drawer on Mobile, Static on Desktop) -->
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 -translate-x-full md:translate-x-0 md:static md:w-60 bg-[#07080c]/95 border-r border-zinc-800/80 backdrop-blur-xl flex flex-col transition-transform duration-300 z-50 shrink-0 shadow-2xl md:shadow-none">
+      <!-- Main Nav Links -->
+      <div class="p-3 space-y-1.5 font-medium">
+        <button class="nav-link active w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all" data-view="home">
+          <i data-lucide="disc" class="w-4 h-4"></i>
+          <span>Vinyl Home</span>
+        </button>
+        <button class="nav-link w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm text-zinc-400 hover:text-white hover:bg-zinc-900/70 border border-transparent hover:border-zinc-800 transition-all font-medium" data-view="explore">
+          <i data-lucide="compass" class="w-4 h-4"></i>
+          <span>Explore</span>
+        </button>
+        <button class="nav-link w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm text-zinc-400 hover:text-white hover:bg-zinc-900/70 border border-transparent hover:border-zinc-800 transition-all font-medium" data-view="library">
+          <i data-lucide="library" class="w-4 h-4"></i>
+          <span>Library</span>
+        </button>
+        <button class="nav-link w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-sm text-zinc-400 hover:text-white hover:bg-zinc-900/70 border border-transparent hover:border-zinc-800 transition-all font-medium" data-view="history">
+          <i data-lucide="history" class="w-4 h-4"></i>
+          <span>History</span>
+        </button>
+      </div>
+
+      <div class="h-px bg-zinc-800/80 mx-4 my-2"></div>
+
+      <!-- Playlists Section -->
+      <div class="flex-1 overflow-y-auto px-3 py-2 space-y-2">
+        <div class="grid grid-cols-2 gap-1.5 mb-2">
+          <button id="new-playlist-btn" class="flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl bg-zinc-900/70 hover:bg-zinc-800/90 border border-zinc-800 hover:border-zinc-700 text-xs font-semibold text-zinc-300 hover:text-white transition-all">
+            <div class="w-4 h-4 rounded-md theme-accent-pill flex items-center justify-center">
+              <i data-lucide="plus" class="w-3 h-3"></i>
+            </div>
+            <span>New</span>
+          </button>
+          <button onclick="app.openImportModal()" class="flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl bg-zinc-900/70 hover:bg-zinc-800/90 border border-zinc-800 hover:border-zinc-700 text-xs font-semibold text-zinc-300 hover:text-white transition-all" title="Import from Spotify, Apple Music, or YouTube">
+            <div class="w-4 h-4 rounded-md theme-accent-pill flex items-center justify-center">
+              <i data-lucide="download" class="w-3 h-3"></i>
+            </div>
+            <span>Import</span>
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between px-3 py-1">
+          <span class="text-[10px] font-mono-code font-bold text-zinc-500 uppercase tracking-wider">Your Playlists</span>
+          <span id="sidebar-playlist-count" class="text-[10px] font-mono-code text-zinc-600">0</span>
+        </div>
+        
+        <div id="sidebar-playlists" class="space-y-1">
+          <!-- Injected via JavaScript (Custom & Imported Playlists Only) -->
+        </div>
+      </div>
+
+      <!-- Footer Info -->
+      <div class="p-3 border-t border-zinc-800/80 text-[11px] font-mono-code text-zinc-500 flex justify-between items-center bg-black/20">
+        <span>Cadence Vinyl Mk-II</span>
+        <span class="flex items-center gap-1.5 text-emerald-400">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          Ready
+        </span>
+      </div>
+    </aside>
+
+    <!-- MAIN SCROLLABLE CONTENT AREA -->
+    <main class="flex-1 overflow-y-auto relative p-3.5 md:p-8 space-y-6 md:space-y-8 bg-gradient-to-b from-[#090a10] via-[#07080c] to-[#050608] pb-36 md:pb-8 w-full min-w-0" id="main-content">
+      
+      <!-- MOOD / CATEGORY CHIPS BAR -->
+      <div id="category-pills-bar" class="flex items-center gap-2.5 overflow-x-auto pb-1 scrollbar-none">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- VIEW: HOME -->
+      <section id="view-home" class="space-y-8">
+
+        <!-- ======================================================== -->
+        <!-- CADENCE RADIAL VINYL TURNTABLE DECK                         -->
+        <!-- ======================================================== -->
+        <div class="vinyl-arena-card bg-[#0b0c12]/95 border border-zinc-800/80 rounded-3xl p-4 sm:p-6 md:p-8 relative overflow-hidden shadow-2xl backdrop-blur-xl">
+          <!-- Ambient Dynamic Glow Blobs in Plinth -->
+          <div class="absolute -top-32 -left-32 w-80 h-80 theme-glow-blob-1 rounded-full blur-3xl pointer-events-none"></div>
+          <div class="absolute -bottom-32 -right-32 w-80 h-80 theme-glow-blob-2 rounded-full blur-3xl pointer-events-none"></div>
+
+          <div class="relative z-10 grid grid-cols-12 gap-6 items-center">
+
+            <!-- LEFT ARC: SONIC MOOD DIALS & LOSSLESS DAC -->
+            <div class="col-span-12 lg:col-span-3 space-y-4">
+              <div class="border-b border-zinc-800 pb-2 flex items-center justify-between">
+                <span class="text-[11px] font-mono-code uppercase tracking-wider text-zinc-400">Sonic Dial / Moods</span>
+                <span class="flex items-center gap-1.5 text-[10px] text-emerald-400 font-mono-code">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Active
+                </span>
+              </div>
+
+              <!-- Interactive Mood Nodes -->
+              <div class="space-y-2" id="vinyl-mood-nodes">
+                <div onclick="app.selectVinylMood(this, 'energize')" class="vinyl-mood-node active p-3 rounded-2xl cursor-pointer transition-all flex items-center justify-between group">
+                  <div class="flex items-center gap-3">
+                    <span class="text-base">⚡</span>
+                    <div>
+                      <div class="font-bold text-xs text-white mood-title">01. Energize Orbit</div>
+                      <div class="text-[10px] text-zinc-400 font-mono-code">Synth-pop & Dance</div>
+                    </div>
+                  </div>
+                  <span class="text-[11px] font-mono-code mood-bpm font-bold">132 BPM</span>
+                </div>
+
+                <div onclick="app.selectVinylMood(this, 'commute')" class="vinyl-mood-node p-3 rounded-2xl bg-zinc-900/60 hover:bg-zinc-800/60 border border-zinc-800 cursor-pointer transition-all flex items-center justify-between group">
+                  <div class="flex items-center gap-3">
+                    <span class="text-base">🌙</span>
+                    <div>
+                      <div class="font-bold text-xs text-zinc-300 group-hover:text-white mood-title">02. Midnight Drive</div>
+                      <div class="text-[10px] text-zinc-500 font-mono-code">R&B & Retrowave</div>
+                    </div>
+                  </div>
+                  <span class="text-[11px] font-mono-code text-zinc-500 mood-bpm">88 BPM</span>
+                </div>
+
+                <div onclick="app.selectVinylMood(this, 'focus')" class="vinyl-mood-node p-3 rounded-2xl bg-zinc-900/60 hover:bg-zinc-800/60 border border-zinc-800 cursor-pointer transition-all flex items-center justify-between group">
+                  <div class="flex items-center gap-3">
+                    <span class="text-base">🧠</span>
+                    <div>
+                      <div class="font-bold text-xs text-zinc-300 group-hover:text-white mood-title">03. Deep Focus</div>
+                      <div class="text-[10px] text-zinc-500 font-mono-code">Electronic & Ambient</div>
+                    </div>
+                  </div>
+                  <span class="text-[11px] font-mono-code text-zinc-500 mood-bpm">104 BPM</span>
+                </div>
+
+                <div onclick="app.selectVinylMood(this, 'relax')" class="vinyl-mood-node p-3 rounded-2xl bg-zinc-900/60 hover:bg-zinc-800/60 border border-zinc-800 cursor-pointer transition-all flex items-center justify-between group">
+                  <div class="flex items-center gap-3">
+                    <span class="text-base">☕</span>
+                    <div>
+                      <div class="font-bold text-xs text-zinc-300 group-hover:text-white mood-title">04. Lo-Fi Chill</div>
+                      <div class="text-[10px] text-zinc-500 font-mono-code">Mellow Beats & Tape</div>
+                    </div>
+                  </div>
+                  <span class="text-[11px] font-mono-code text-zinc-500 mood-bpm">78 BPM</span>
+                </div>
+              </div>
+
+              <!-- Live Lossless DAC Spectrum Display -->
+              <div class="p-3.5 rounded-2xl bg-black/40 border border-zinc-800/80 space-y-2">
+                <div class="flex items-center justify-between text-[10px] font-mono-code text-zinc-400">
+                  <span>DAC PIPELINE</span>
+                  <span class="text-emerald-400">DIRECT FLAC</span>
+                </div>
+                <div class="h-7 flex items-end justify-between gap-1 px-1">
+                  <div class="w-1.5 bg-violet-400 rounded-full h-3 animate-pulse"></div>
+                  <div class="w-1.5 bg-violet-400 rounded-full h-6 animate-pulse" style="animation-delay: 0.2s;"></div>
+                  <div class="w-1.5 bg-fuchsia-400 rounded-full h-4 animate-pulse" style="animation-delay: 0.1s;"></div>
+                  <div class="w-1.5 bg-fuchsia-400 rounded-full h-7 animate-pulse" style="animation-delay: 0.3s;"></div>
+                  <div class="w-1.5 bg-amber-400 rounded-full h-5 animate-pulse" style="animation-delay: 0.15s;"></div>
+                  <div class="w-1.5 bg-violet-400 rounded-full h-3 animate-pulse" style="animation-delay: 0.25s;"></div>
+                </div>
+                <div class="text-[10px] text-zinc-500 font-mono-code text-center">24-bit • 96kHz Lossless Stream</div>
+              </div>
+            </div>
+
+            <!-- CENTER COLUMN: REALISTIC VINYL TURNTABLE DECK -->
+            <div class="col-span-12 lg:col-span-6 flex flex-col items-center justify-center relative py-2 sm:py-4">
+              <!-- Turntable Plinth Casing -->
+              <div class="relative w-[300px] sm:w-[380px] md:w-[440px] h-[300px] sm:h-[380px] md:h-[440px] rounded-full bg-[#11131a] border-4 border-[#1e2230] shadow-2xl flex items-center justify-center orbit-glow">
+                
+                <!-- Dashed Orbital Ring -->
+                <div class="absolute inset-2 rounded-full orbit-ring pointer-events-none"></div>
+
+                <!-- REAL VINYL RECORD DISC -->
+                <div id="vinyl-disc" class="relative w-[270px] sm:w-[340px] md:w-[390px] h-[270px] sm:h-[340px] md:h-[390px] rounded-full vinyl-grooves cursor-pointer flex items-center justify-center spinning-33 shadow-2xl transition-all group" onclick="app.togglePlayPause()">
+                  
+                  <!-- Conic Specular Light Sheen Overlay -->
+                  <div class="absolute inset-0 rounded-full vinyl-sheen"></div>
+
+                  <!-- Run-Out Groove Ring -->
+                  <div class="absolute w-[160px] sm:w-[200px] md:w-[230px] h-[160px] sm:h-[200px] md:h-[230px] rounded-full border border-black/80 pointer-events-none"></div>
+
+                  <!-- Center Vinyl Record Label (Maintains Upright Dignified Album Art, No Overlay, No Text Smear) -->
+                  <div class="relative z-20 w-[105px] sm:w-[130px] md:w-[150px] h-[105px] sm:h-[130px] md:h-[150px] rounded-full border-2 border-white/20 shadow-2xl overflow-hidden flex items-center justify-center bg-black vinyl-label-upright">
+                    <!-- Edge-to-Edge Pure Album Cover Art Properly Proportioned & Centered -->
+                    <img id="vinyl-label-art" src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80'" class="absolute inset-0 w-full h-full object-cover object-center pointer-events-none select-none">
+
+                    <!-- Subtle Precision Chrome Spindle Peg (Authentic Turntable Pin, Unobtrusive) -->
+                    <div class="relative z-30 w-3.5 h-3.5 rounded-full bg-gradient-to-tr from-zinc-400 via-zinc-200 to-white shadow-md border border-zinc-600/70 flex items-center justify-center pointer-events-none">
+                      <div class="w-1.5 h-1.5 rounded-full bg-[#0a0a0f] shadow-inner"></div>
+                    </div>
+                  </div>
+
+                  <!-- Center Hover Icon -->
+                  <div class="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-30 pointer-events-none">
+                    <div class="w-12 h-12 rounded-full bg-white text-black font-black text-sm flex items-center justify-center shadow-2xl transform group-hover:scale-110 transition-transform">
+                      <i data-lucide="play" id="vinyl-center-play-icon" class="w-6 h-6 fill-current"></i>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- ARTICULATED TONEARM & NEEDLE HEADSHELL -->
+                <div class="absolute top-1.5 right-1.5 sm:top-3 sm:right-3 z-40 pointer-events-none">
+                  <div id="tonearm" class="relative tonearm-playing">
+                    <!-- Pivot Gimbal -->
+                    <div class="w-14 sm:w-16 h-14 sm:h-16 rounded-full bg-gradient-to-tr from-[#1b1e28] to-[#2c3242] border-2 border-zinc-600 shadow-xl flex items-center justify-center">
+                      <div class="w-7 sm:w-8 h-7 sm:h-8 rounded-full bg-[#11131a] border border-zinc-500 shadow-inner"></div>
+                    </div>
+
+                    <!-- Wand -->
+                    <div class="absolute top-7 left-7 sm:top-8 sm:left-8 w-2 h-32 sm:h-40 md:h-48 bg-gradient-to-r from-zinc-300 via-zinc-400 to-zinc-500 rounded-full shadow-2xl origin-top transform rotate-6">
+                      <!-- Cartridge / Stylus -->
+                      <div class="absolute -bottom-5 -left-2.5 sm:-bottom-6 sm:-left-3 w-7 sm:w-8 h-8 sm:h-10 bg-black border border-zinc-400 rounded-sm shadow-2xl flex flex-col items-center justify-between p-1">
+                        <div class="w-1.5 h-1.5 rounded-full bg-red-500 shadow-sm shadow-red-500 animate-pulse"></div>
+                        <span class="text-[5px] sm:text-[6px] font-mono-code text-white">ORTOFON</span>
+                        <div class="w-1 h-2 bg-amber-400 rounded-b"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+
+                <!-- DIRECT DRIVE QUARTZ LOCK STATUS BADGE ON PLINTH -->
+                <div class="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 bg-[#141620]/95 backdrop-blur-md border border-zinc-700/80 px-2.5 py-1.5 rounded-xl shadow-xl flex items-center gap-1.5 text-[10px] font-mono-code text-zinc-400">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>QUARTZ LOCK</span>
+                </div>
+
+              </div>
+
+            </div>
+
+            <!-- RIGHT ARC: NEXT IN SATELLITE ORBIT (LIVE QUEUE PREVIEW) -->
+            <div class="col-span-12 lg:col-span-3 space-y-4">
+              <div class="border-b border-zinc-800 pb-2 flex items-center justify-between">
+                <span class="text-[11px] font-mono-code uppercase tracking-wider text-zinc-400">Up Next In Orbit</span>
+                <button onclick="app.toggleQueue(true)" class="text-xs text-violet-400 font-bold hover:underline cursor-pointer">Full Queue →</button>
+              </div>
+
+              <!-- Orbit Track Cards Container -->
+              <div id="orbit-tracks-list" class="space-y-2.5">
+                <!-- Dynamically populated via JavaScript -->
+              </div>
+
+              <!-- Quick Link Button -->
+              <div onclick="app.openAddTrackModal()" class="p-2.5 rounded-2xl bg-zinc-900/40 border border-dashed border-zinc-700/80 text-center text-xs text-zinc-400 cursor-pointer hover:bg-zinc-800 transition-all flex items-center justify-center gap-1.5">
+                <i data-lucide="plus" class="w-3.5 h-3.5 text-violet-400"></i>
+                <span>Add YouTube Link / ID</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <!-- SHELF 0: MIXED FOR YOU (YouTube Music Signature My Supermix) -->
+        <div id="supermix-section" class="hidden">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <span class="text-xs font-semibold uppercase tracking-wider text-amber-400 font-mono-code flex items-center gap-1.5">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                <span>Mixed for you</span>
+              </span>
+              <h2 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
+                <span>My Supermix</span>
+                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">Your Taste</span>
+              </h2>
+            </div>
+            <button class="text-xs font-semibold text-zinc-400 hover:text-white border border-[#333] hover:border-zinc-400 px-3.5 py-1 rounded-full transition-colors" onclick="app.playAllSupermix()">
+              Play all
+            </button>
+          </div>
+          <div id="supermix-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <!-- Injected via JavaScript -->
+          </div>
+        </div>
+
+        <!-- SHELF 0.5: SIMILAR TO YOUR TOP ARTIST -->
+        <div id="similar-artists-section" class="hidden">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <span id="similar-artists-subtitle" class="text-xs font-semibold uppercase tracking-wider text-violet-400 font-mono-code">Because you listen to</span>
+              <h2 id="similar-artists-title" class="text-2xl font-bold tracking-tight text-white">Similar to Your Favorite</h2>
+            </div>
+            <button class="text-xs font-semibold text-zinc-400 hover:text-white border border-[#333] hover:border-zinc-400 px-3.5 py-1 rounded-full transition-colors" onclick="app.playAllSimilarArtists()">
+              Play all
+            </button>
+          </div>
+          <div id="similar-artists-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <!-- Injected via JavaScript -->
+          </div>
+        </div>
+
+        <!-- SHELF 1: LISTEN AGAIN (YouTube Music Recent Activity) -->
+        <div id="listen-again-section" class="hidden">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <span class="text-xs font-semibold uppercase tracking-wider text-violet-400 font-mono-code">Recent Activity</span>
+              <h2 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                <span>Listen again</span>
+              </h2>
+            </div>
+            <button class="text-xs font-semibold text-zinc-400 hover:text-white border border-[#333] hover:border-zinc-400 px-3.5 py-1 rounded-full transition-colors" onclick="app.playAllListenAgain()">
+              Play all
+            </button>
+          </div>
+          <div id="listen-again-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <!-- Injected via JavaScript -->
+          </div>
+        </div>
+
+        <!-- SHELF 2: IN HEAVY ROTATION (YouTube Music 2-3+ Plays Shelf) -->
+        <div id="heavy-rotation-section" class="hidden">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <span class="text-xs font-semibold uppercase tracking-wider text-rose-400 font-mono-code">Played 2-3+ Times</span>
+              <h2 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
+                <span>In heavy rotation</span>
+                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30">Your Rotation</span>
+              </h2>
+            </div>
+            <button class="text-xs font-semibold text-zinc-400 hover:text-white border border-[#333] hover:border-zinc-400 px-3.5 py-1 rounded-full transition-colors" onclick="app.playAllRotation()">
+              Play all
+            </button>
+          </div>
+          <div id="heavy-rotation-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <!-- Injected via JavaScript -->
+          </div>
+        </div>
+
+        <!-- SHELF 3: QUICK PICKS (YouTube Music Discovery & Radio Starters) -->
+        <div id="quick-picks-section">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <span id="quick-picks-subtitle" class="text-xs font-semibold uppercase tracking-wider text-zinc-400 font-mono-code">Start Radio From a Song</span>
+              <h2 id="quick-picks-title" class="text-2xl font-bold tracking-tight text-white">Quick picks</h2>
+            </div>
+            <button class="text-xs font-semibold text-zinc-400 hover:text-white border border-[#333] hover:border-zinc-400 px-3.5 py-1 rounded-full transition-colors" onclick="app.playAllQuickPicks()">
+              Play all
+            </button>
+          </div>
+
+          <!-- 4-row x multi-column track list -->
+          <div id="quick-picks-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <!-- Injected via JavaScript -->
+          </div>
+        </div>
+
+        <!-- Recommended Playlists -->
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <span class="text-xs font-semibold uppercase tracking-wider text-ytm-muted">Forgotten favorites & new picks</span>
+              <h2 class="text-2xl font-bold tracking-tight">Recommended playlists</h2>
+            </div>
+          </div>
+
+          <div id="recommended-playlists-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+            <!-- Injected via JavaScript -->
+          </div>
+        </div>
+
+        <!-- Trending Hits -->
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <span class="text-xs font-semibold uppercase tracking-wider text-ytm-muted">Global Top 50</span>
+              <h2 class="text-2xl font-bold tracking-tight">Trending worldwide</h2>
+            </div>
+          </div>
+
+          <div id="trending-tracks-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Injected via JavaScript -->
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW: EXPLORE (Hidden by default) -->
+      <section id="view-explore" class="space-y-8 hidden">
+        <div>
+          <h2 class="text-3xl font-bold mb-6">Explore</h2>
+          <!-- Fast Explore Buttons -->
+          <div class="grid grid-cols-3 gap-4 mb-8">
+            <div class="bg-ytm-card hover:bg-ytm-hover p-4 rounded-xl flex items-center gap-3 cursor-pointer transition-colors" onclick="app.filterByMood('party')">
+              <div class="w-10 h-10 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center">
+                <i data-lucide="flame" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-sm">New Releases</h4>
+                <p class="text-xs text-ytm-muted">Fresh music this week</p>
+              </div>
+            </div>
+            <div class="bg-ytm-card hover:bg-ytm-hover p-4 rounded-xl flex items-center gap-3 cursor-pointer transition-colors" onclick="app.filterByMood('energize')">
+              <div class="w-10 h-10 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                <i data-lucide="trending-up" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-sm">Charts</h4>
+                <p class="text-xs text-ytm-muted">Top 100 Global & Local</p>
+              </div>
+            </div>
+            <div class="bg-ytm-card hover:bg-ytm-hover p-4 rounded-xl flex items-center gap-3 cursor-pointer transition-colors" onclick="app.filterByMood('relax')">
+              <div class="w-10 h-10 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+                <i data-lucide="smile" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-sm">Moods & Genres</h4>
+                <p class="text-xs text-ytm-muted">Curated for any feeling</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Genres Grid -->
+        <div>
+          <h3 class="text-xl font-bold mb-4">Moods and Genres</h3>
+          <div id="genres-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+            <!-- Injected via JavaScript -->
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW: LIBRARY (Hidden by default) -->
+      <section id="view-library" class="space-y-6 hidden">
+        <div class="flex items-center justify-between">
+          <h2 class="text-3xl font-bold">Your Library</h2>
+          <div class="flex gap-2">
+            <button class="bg-[#2a2a2a] hover:bg-[#353535] text-xs font-semibold px-4 py-2 rounded-full" onclick="app.openAddTrackModal()">
+              + Add Custom YouTube Track
+            </button>
+          </div>
+        </div>
+
+        <div id="library-playlists-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+          <!-- Injected via JavaScript -->
+        </div>
+
+        <div class="mt-8">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold flex items-center gap-2">
+              <i data-lucide="heart" class="w-5 h-5 text-rose-500 fill-current"></i>
+              <span>Liked Songs</span>
+            </h3>
+            <span id="library-liked-count" class="text-xs font-mono-code text-zinc-400">0 songs</span>
+          </div>
+          <div id="library-liked-list" class="space-y-2">
+            <!-- Injected via JavaScript -->
+          </div>
+        </div>
+
+        <div class="mt-8">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold flex items-center gap-2">
+              <i data-lucide="arrow-down-to-line" class="w-5 h-5 text-cyan-400"></i>
+              <span>Downloaded</span>
+            </h3>
+            <span id="library-downloaded-count" class="text-xs font-mono-code text-zinc-400">0 songs</span>
+          </div>
+          <div id="library-downloaded-list" class="space-y-2">
+            <!-- Injected via JavaScript -->
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW: SEARCH RESULTS (Hidden by default) -->
+      <section id="view-search" class="space-y-6 hidden">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-xs font-semibold text-ytm-muted uppercase">Search results for</span>
+            <h2 id="search-query-title" class="text-2xl font-bold">Query</h2>
+          </div>
+          <button class="text-xs text-ytm-muted hover:text-white" onclick="app.clearSearch()">Clear search</button>
+        </div>
+
+        <div id="search-results-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <!-- Injected via JavaScript -->
+        </div>
+      </section>
+
+      <!-- VIEW: LISTENING HISTORY (Hidden by default) -->
+      <section id="view-history" class="space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
+          <div>
+            <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider font-mono-code">Personal Taste & Archives</span>
+            <h2 class="text-3xl font-black text-white tracking-tight flex items-center gap-3">
+              <i data-lucide="history" class="w-8 h-8 text-violet-400"></i>
+              <span>Listening History</span>
+            </h2>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <button onclick="app.playAllHistory()" id="btn-play-all-history" class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-violet-600/30">
+              <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+              <span>Play All</span>
+            </button>
+            <button onclick="app.clearSongHistory()" class="px-3.5 py-2 rounded-xl bg-zinc-900/80 hover:bg-rose-900/40 hover:text-rose-300 text-zinc-400 text-xs font-medium border border-zinc-800 transition-all flex items-center gap-1.5">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              <span>Clear History</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="history-tracks-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          <!-- Injected via JavaScript -->
+        </div>
+      </section>
+
+      <!-- VIEW: PLAYLIST DETAIL VIEW (Hidden by default) -->
+      <section id="view-playlist" class="space-y-6 hidden">
+        <!-- Back Navigation Button -->
+        <div class="flex items-center gap-2">
+          <button onclick="app.navigateBackFromPlaylist()" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-zinc-300 hover:text-white transition-colors">
+            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+            <span>Back</span>
+          </button>
+        </div>
+
+        <!-- Playlist Hero Banner -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-end gap-6 bg-gradient-to-b from-white/[0.07] via-white/[0.02] to-transparent p-6 rounded-3xl border border-zinc-800/80 shadow-2xl relative overflow-hidden">
+          <div class="absolute -top-20 -left-20 w-64 h-64 bg-violet-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+          <!-- Big Cover Image -->
+          <div class="relative group shrink-0">
+            <img id="playlist-view-cover" src="" class="w-44 h-44 sm:w-52 sm:h-52 rounded-2xl object-cover shadow-2xl border border-white/10 ring-1 ring-white/10" alt="Playlist Cover">
+          </div>
+
+          <!-- Playlist Details -->
+          <div class="flex-1 min-w-0 space-y-2 z-10">
+            <span id="playlist-view-badge" class="px-2.5 py-1 rounded-md text-[10px] font-bold font-mono-code bg-violet-500/20 text-violet-300 border border-violet-500/30 uppercase tracking-wider">PLAYLIST</span>
+            <h1 id="playlist-view-title" class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight truncate">Playlist Title</h1>
+            <p id="playlist-view-description" class="text-xs sm:text-sm text-zinc-400 font-mono-code line-clamp-2">Playlist description</p>
+
+            <div class="flex items-center gap-2 text-xs text-zinc-400 pt-1 font-mono-code">
+              <span id="playlist-view-curator" class="font-semibold text-white">Cadence Music</span>
+              <span>•</span>
+              <span id="playlist-view-stats">0 songs</span>
+            </div>
+
+            <!-- Action Buttons Row -->
+            <div class="flex items-center gap-3 pt-3">
+              <button id="btn-playlist-view-play" onclick="app.playCurrentViewPlaylist(false)" class="px-6 py-2.5 rounded-full bg-white hover:bg-zinc-200 text-black font-extrabold text-xs transition-all shadow-xl flex items-center gap-2 hover:scale-105 active:scale-95">
+                <i data-lucide="play" class="w-4 h-4 fill-current ml-0.5"></i>
+                <span>Play</span>
+              </button>
+              <button onclick="app.playCurrentViewPlaylist(true)" class="px-4 py-2.5 rounded-full bg-zinc-900/90 hover:bg-zinc-800 text-white font-semibold text-xs border border-zinc-700/80 transition-all flex items-center gap-2">
+                <i data-lucide="shuffle" class="w-4 h-4"></i>
+                <span>Shuffle</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tracklist Table -->
+        <div class="space-y-2">
+          <!-- Table Header -->
+          <div class="grid grid-cols-12 px-4 py-2 border-b border-zinc-800 text-[11px] font-mono-code uppercase tracking-wider text-zinc-500">
+            <span class="col-span-1 text-center">#</span>
+            <span class="col-span-6 sm:col-span-5">Title</span>
+            <span class="hidden sm:block sm:col-span-4 truncate">Album</span>
+            <span class="col-span-5 sm:col-span-2 text-right pr-2">Duration</span>
+          </div>
+
+          <!-- Tracks List Container -->
+          <div id="playlist-view-tracks-list" class="space-y-1">
+            <!-- Injected via JavaScript -->
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- UP NEXT / QUEUE DRAWER -->
+    <aside id="queue-drawer" class="fixed top-14 md:top-16 bottom-28 md:bottom-20 right-0 w-80 md:w-96 bg-[#121212]/95 backdrop-blur-md border-l border-[#242424] p-4 flex flex-col z-40 translate-x-full drawer-transition invisible pointer-events-none shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-[#242424]">
+        <div class="flex items-center gap-2">
+          <i data-lucide="list-music" class="w-5 h-5 text-ytm-red"></i>
+          <h3 class="font-bold text-base">Up Next</h3>
+        </div>
+        <button id="close-queue-btn" onclick="app.toggleQueue(false)" class="p-1 hover:bg-ytm-hover rounded-full text-ytm-muted hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto py-3 space-y-2" id="queue-tracks-list">
+        <!-- Injected via JavaScript -->
+      </div>
+    </aside>
+
+    <!-- LYRICS DRAWER (Full-screen on Mobile, Drawer on Desktop) -->
+    <aside id="lyrics-drawer" class="fixed inset-0 md:top-16 md:bottom-20 md:left-auto md:right-0 md:w-96 bg-[#101010]/98 backdrop-blur-xl border-l border-[#242424] p-4 md:p-5 flex flex-col z-50 translate-x-full drawer-transition invisible pointer-events-none shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-[#242424]">
+        <div class="flex items-center gap-2">
+          <i data-lucide="mic-2" class="w-5 h-5 text-ytm-red"></i>
+          <h3 class="font-bold text-base">Lyrics</h3>
+        </div>
+        <div class="flex items-center gap-2">
+          <!-- Translation Button -->
+          <button id="btn-translate-lyrics" onclick="app.toggleLyricsTranslation()" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#202020] hover:bg-[#2d2d2d] border border-[#383838] text-xs font-semibold text-zinc-300 hover:text-white transition-all shadow" title="Translate lyrics to English">
+            <i data-lucide="languages" class="w-3.5 h-3.5 text-indigo-400"></i>
+            <span id="translate-btn-label">Translate</span>
+          </button>
+          <button id="close-lyrics-btn" onclick="app.toggleLyrics(false)" class="p-1 hover:bg-ytm-hover rounded-full text-ytm-muted hover:text-white">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto py-4 space-y-2 text-center font-medium text-base text-zinc-400 leading-relaxed scrollbar-none" id="lyrics-content">
+        <!-- Injected via JavaScript -->
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- PERSISTENT BOTTOM PLAYER BAR (Desktop Only: md+) -->
+  <footer class="hidden md:flex h-20 bg-[#07080c]/95 border-t border-zinc-800/80 backdrop-blur-xl px-4 md:px-6 items-center justify-between z-40 select-none relative shadow-2xl">
+    
+    <!-- Left: Track Meta, Actions & Pro Suite Tools in Open Space -->
+    <div class="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 max-w-md">
+      <div class="relative group cursor-pointer shrink-0" onclick="app.showFloatingPanel('song')" title="Show Side Floating Card">
+        <img id="player-cover" src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80'" class="w-12 h-12 rounded-xl object-cover shadow-lg border border-zinc-700/80 ring-1 ring-violet-500/20" alt="Current cover">
+        <div class="absolute inset-0 bg-black/40 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" onclick="event.stopPropagation(); app.toggleFullscreen()" title="Fullscreen Now Playing (F)">
+          <i data-lucide="maximize-2" class="w-4 h-4 text-white"></i>
+        </div>
+      </div>
+
+      <div class="overflow-hidden min-w-0 max-w-[110px] sm:max-w-[150px] lg:max-w-[180px]">
+        <div id="player-title" class="font-bold text-xs sm:text-sm text-white truncate hover:text-violet-300 cursor-pointer transition-colors">Select a track</div>
+        <div id="player-artist" class="text-[11px] text-zinc-400 font-mono-code truncate hover:text-zinc-300 cursor-pointer transition-colors">Cadence Music</div>
+      </div>
+
+      <div class="flex items-center gap-0.5 sm:gap-1 shrink-0">
+        <button id="btn-like" class="p-1.5 text-zinc-500 hover:text-violet-400 transition-colors" title="Like">
+          <i data-lucide="thumbs-up" class="w-4 h-4"></i>
+        </button>
+        <button id="btn-dislike" class="p-1.5 text-zinc-500 hover:text-zinc-300 transition-colors" title="Dislike">
+          <i data-lucide="thumbs-down" class="w-4 h-4"></i>
+        </button>
+        <button id="btn-player-download" onclick="app.toggleDownloadCurrentTrack()" class="p-1.5 text-zinc-500 hover:text-emerald-400 transition-colors" title="Download for Offline (D)">
+          <i data-lucide="download" id="player-download-icon" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Subtle vertical divider separating track actions and tools in open space -->
+      <div class="h-5 w-px bg-zinc-800/80 mx-1 shrink-0 hidden sm:block"></div>
+
+      <!-- Left Open Space Pro Tools: Radio Tuner, Equalizer, Sleep Timer, Shortcuts -->
+      <div class="flex items-center gap-0.5 sm:gap-1 shrink-0">
+        <button id="btn-radio-tuner" onclick="app.openModal('radio-tuner-modal')" class="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-xl transition-all" title="Tune Radio (T)">
+          <i data-lucide="sliders" class="w-4 h-4 text-violet-400"></i>
+        </button>
+
+        <button id="btn-equalizer" onclick="app.openModal('equalizer-modal')" class="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-xl transition-all" title="Equalizer & Bass Boost (E)">
+          <i data-lucide="activity" class="w-4 h-4 text-emerald-400"></i>
+        </button>
+
+        <button id="btn-sleep-timer" onclick="app.openModal('sleep-timer-modal')" class="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-xl transition-all relative" title="Sleep Timer (S)">
+          <i data-lucide="moon" class="w-4 h-4 text-indigo-400"></i>
+          <span id="sleep-timer-badge" class="hidden absolute -top-1 -right-1 px-1 py-0.5 rounded-full bg-indigo-600 text-white text-[8px] font-mono-code font-bold">15m</span>
+        </button>
+
+        <button id="btn-shortcuts" onclick="app.openModal('keyboard-shortcuts-modal')" class="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-xl transition-all" title="Keyboard Shortcuts (?)">
+          <i data-lucide="keyboard" class="w-4 h-4 text-zinc-300"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Center: Playback Controls & Progress Bar -->
+    <div class="flex flex-col items-center justify-center flex-1 max-w-xl px-2 sm:px-4">
+      <!-- Buttons row -->
+      <div class="flex items-center gap-5 mb-1.5">
+        <button id="btn-shuffle" class="p-1.5 text-zinc-400 hover:text-white transition-colors" title="Shuffle">
+          <i data-lucide="shuffle" class="w-4 h-4"></i>
+        </button>
+        <button id="btn-prev" class="p-1.5 text-zinc-400 hover:text-white transition-colors" title="Previous">
+          <i data-lucide="skip-back" class="w-5 h-5 fill-current"></i>
+        </button>
+        
+        <!-- Big Play/Pause Button with Vinyl Glow -->
+        <button id="btn-play-pause" class="w-10 h-10 rounded-full bg-white text-black hover:scale-105 active:scale-95 flex items-center justify-center transition-all shadow-lg shadow-violet-500/20">
+          <i data-lucide="play" id="play-pause-icon" class="w-5 h-5 fill-current translate-x-0.5"></i>
+        </button>
+
+        <button id="btn-next" class="p-1.5 text-zinc-400 hover:text-white transition-colors" title="Next">
+          <i data-lucide="skip-forward" class="w-5 h-5 fill-current"></i>
+        </button>
+        <button id="btn-repeat" class="p-1.5 text-zinc-400 hover:text-white transition-colors" title="Repeat">
+          <i data-lucide="repeat" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Scrubber Row -->
+      <div class="w-full flex items-center gap-3 text-xs text-zinc-400 font-mono-code">
+        <span id="time-current">0:00</span>
+        <input 
+          id="player-progress" 
+          type="range" 
+          min="0" 
+          max="100" 
+          value="0" 
+          class="player-slider flex-1 h-1.5"
+        >
+        <span id="time-duration">3:20</span>
+      </div>
+    </div>
+
+    <!-- Right: Extra Controls & Volume -->
+    <div class="flex items-center justify-end gap-2 sm:gap-2.5 flex-1 min-w-0 max-w-md">
+      <!-- Audio Visualizer Indicator -->
+      <div id="equalizer" class="hidden sm:flex items-end gap-0.5 h-4 px-1.5">
+        <div class="equalizer-bar"></div>
+        <div class="equalizer-bar"></div>
+        <div class="equalizer-bar"></div>
+        <div class="equalizer-bar"></div>
+      </div>
+
+      <!-- Turntable RPM Indicator Pill in Bottom Player Bar -->
+      <div class="hidden lg:flex items-center gap-1 bg-zinc-900/90 border border-zinc-800 p-0.5 rounded-xl text-[10px] font-mono-code shrink-0">
+        <button onclick="app.setTurntableRpm(33)" id="footer-rpm-33-btn" class="px-2 py-0.5 rounded-lg font-bold text-white theme-btn-active transition-colors">33</button>
+        <button onclick="app.setTurntableRpm(45)" id="footer-rpm-45-btn" class="px-2 py-0.5 rounded-lg text-zinc-500 hover:text-white transition-colors">45</button>
+      </div>
+
+      <!-- YouTube Music Song / Video Mode Switcher Pill -->
+      <div id="media-mode-switcher" class="hidden sm:flex items-center bg-zinc-900/90 border border-zinc-800 p-0.5 rounded-full text-xs font-semibold shrink-0">
+        <button id="toggle-song-btn" onclick="app.setMediaMode('song')" class="px-3 py-1 rounded-full font-bold text-white bg-white/20 transition-all flex items-center gap-1.5 shadow-sm" title="Listen to Song Audio">
+          <i data-lucide="disc" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <span>Song</span>
+        </button>
+        <button id="toggle-video-btn" onclick="app.setMediaMode('video')" class="px-3 py-1 rounded-full text-zinc-400 hover:text-white transition-all flex items-center gap-1.5" title="Watch Music Video">
+          <i data-lucide="tv" class="w-3.5 h-3.5 text-violet-400"></i>
+          <span id="video-mode-label">Video</span>
+        </button>
+      </div>
+
+      <!-- Lyrics Button -->
+      <button id="toggle-lyrics-btn" class="p-2 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-xl transition-all" title="Lyrics">
+        <i data-lucide="mic-2" class="w-4 h-4"></i>
+      </button>
+
+      <!-- Queue Button -->
+      <button id="toggle-queue-btn" class="p-2 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-xl transition-all relative" title="Queue">
+        <i data-lucide="list-music" class="w-4 h-4"></i>
+        <span id="queue-badge" class="absolute -top-0.5 -right-0.5 w-4 h-4 theme-accent-gradient text-white text-[9px] font-mono-code font-bold rounded-full flex items-center justify-center shadow-sm">12</span>
+      </button>
+
+      <!-- Volume Icon & Slider -->
+      <div class="flex items-center gap-2">
+        <button id="btn-volume-icon" class="p-1.5 text-zinc-400 hover:text-white transition-colors">
+          <i data-lucide="volume-2" id="volume-icon" class="w-4 h-4"></i>
+        </button>
+        <input 
+          id="volume-slider" 
+          type="range" 
+          min="0" 
+          max="100" 
+          value="80" 
+          class="volume-slider w-20 hidden md:block"
+        >
+      </div>
+
+      <!-- Fullscreen Toggle Button -->
+      <button id="btn-fullscreen" onclick="app.toggleFullscreen()" class="p-2 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-xl transition-all" title="Full screen (F)">
+        <i data-lucide="maximize" class="w-4 h-4"></i>
+      </button>
+    </div>
+      </button>
+    </div>
+
+  </footer>
+
+  <!-- FLOATING CANVAS & VIDEO WINDOW -->
+  <div id="video-panel" class="video-active song-card-mode group/panel overflow-hidden">
+    <div class="relative w-full h-full">
+
+      <!-- LAYER 1: SONG MODE (Pure Square Cover, No Bezels, No Permanent Overlay, Curved Corners) -->
+      <div id="floating-cover-layer" class="relative w-full h-full overflow-hidden rounded-[1.25rem] transition-opacity duration-200">
+        <!-- Pure Edge-to-Edge High-Res Cover Art -->
+        <img id="floating-cover-img" src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80" referrerpolicy="no-referrer" class="w-full h-full object-cover select-none pointer-events-none" alt="Album Cover">
+
+        <!-- Hover-Only Controls (Zero overlay when not hovering) -->
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 group-hover/panel:opacity-100 transition-opacity duration-200 flex flex-col justify-between p-2.5 z-20">
+          <!-- Top Controls on Hover -->
+          <div class="flex items-center justify-between w-full">
+            <span class="text-[10px] font-bold text-white/90 px-2 py-0.5 rounded-full bg-black/60 border border-white/10 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Audio
+            </span>
+            <div class="flex items-center gap-1">
+              <button onclick="app.openVideoPopup()" class="px-2 py-0.5 rounded-full bg-black/70 hover:bg-black/95 text-white text-[11px] font-semibold flex items-center gap-1 transition-colors border border-white/20 shadow" title="Switch to Official Music Video">
+                <i data-lucide="tv" class="w-3 h-3 text-ytm-red"></i>
+                <span>Video</span>
+              </button>
+              <button onclick="app.toggleFullscreen()" class="p-1 rounded-full bg-black/70 hover:bg-black/95 text-white transition-colors border border-white/20" title="Fullscreen (F)">
+                <i data-lucide="maximize" class="w-3.5 h-3.5"></i>
+              </button>
+              <button onclick="app.closeFloatingPanel()" class="p-1 rounded-full bg-black/70 hover:bg-black/95 text-white transition-colors border border-white/20" title="Close">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Center Play/Pause on Hover -->
+          <div class="flex items-center justify-center my-auto cursor-pointer" onclick="app.togglePlayPause()" title="Play / Pause">
+            <div class="w-11 h-11 rounded-full bg-white/25 hover:bg-white/35 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-xl transition-transform hover:scale-110 active:scale-95">
+              <i data-lucide="play" id="floating-cover-play-icon" class="w-5 h-5 fill-current translate-x-0.5"></i>
+            </div>
+          </div>
+
+          <!-- Bottom Title on Hover -->
+          <div class="pointer-events-none min-w-0">
+            <div id="floating-cover-title" class="font-bold text-xs text-white truncate drop-shadow">Select a track</div>
+            <div id="floating-cover-artist" class="text-[10px] text-zinc-300 truncate drop-shadow">Cadence Music</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LAYER 2: VIDEO MODE (Official Music Video Player) -->
+      <div id="floating-video-layer" class="absolute inset-0 w-full h-full z-10 flex flex-col opacity-0 pointer-events-none transition-opacity duration-200">
+        <!-- Video Header Bar -->
+        <div class="absolute top-0 left-0 right-0 p-2.5 bg-gradient-to-b from-black/95 via-black/60 to-transparent flex items-center justify-between z-30">
+          <span class="text-xs font-bold text-white drop-shadow flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-ytm-red animate-pulse"></span>
+            Official Music Video
+          </span>
+          <div class="flex items-center gap-1.5">
+            <!-- Resolution Selector Dropdown -->
+            <div class="relative inline-block text-left" id="quality-selector-container">
+              <button id="btn-quality-picker" onclick="app.toggleQualityMenu('mini')" class="px-2 py-0.5 rounded-full bg-black/70 hover:bg-black/95 text-white text-[11px] font-bold border border-white/20 transition-all flex items-center gap-1 shadow" title="Select Resolution">
+                <span id="quality-badge-label">1080p HD</span>
+                <i data-lucide="chevron-down" class="w-3 h-3 text-zinc-400"></i>
+              </button>
+              <div id="quality-menu-dropdown" class="hidden absolute right-0 mt-1 w-28 bg-[#181818]/95 backdrop-blur-md border border-[#333] rounded-lg shadow-2xl py-1 z-50 text-xs">
+                <button class="w-full text-left px-3 py-1.5 hover:bg-[#282828] text-white flex items-center justify-between font-medium" onclick="app.changeQuality('hd1080')">1080p HD <span class="quality-check" data-q="hd1080">✓</span></button>
+                <button class="w-full text-left px-3 py-1.5 hover:bg-[#282828] text-white flex items-center justify-between font-medium" onclick="app.changeQuality('hd720')">720p HD <span class="quality-check hidden" data-q="hd720">✓</span></button>
+                <button class="w-full text-left px-3 py-1.5 hover:bg-[#282828] text-white flex items-center justify-between font-medium" onclick="app.changeQuality('large')">480p <span class="quality-check hidden" data-q="large">✓</span></button>
+                <button class="w-full text-left px-3 py-1.5 hover:bg-[#282828] text-white flex items-center justify-between font-medium" onclick="app.changeQuality('medium')">360p <span class="quality-check hidden" data-q="medium">✓</span></button>
+                <button class="w-full text-left px-3 py-1.5 hover:bg-[#282828] text-white flex items-center justify-between font-medium" onclick="app.changeQuality('auto')">Auto <span class="quality-check hidden" data-q="auto">✓</span></button>
+              </div>
+            </div>
+
+            <!-- Switch back to Song Cover Mode -->
+            <button onclick="app.openCoverPopup()" class="px-2 py-0.5 rounded-full bg-black/60 hover:bg-black/90 text-white text-[11px] font-semibold flex items-center gap-1 transition-colors border border-white/10" title="Switch to Song Cover">
+              <i data-lucide="disc" class="w-3 h-3 text-zinc-300"></i>
+              <span>Song</span>
+            </button>
+            <button id="btn-panel-pip" onclick="app.togglePictureInPicture()" class="p-1 rounded-full bg-black/60 hover:bg-black/90 text-white transition-colors border border-white/10" title="Picture-in-Picture">
+              <i data-lucide="picture-in-picture-2" class="w-3.5 h-3.5 text-cyan-400"></i>
+            </button>
+            <button onclick="app.toggleFullscreen()" class="p-1 rounded-full bg-black/60 hover:bg-black/90 text-white transition-colors border border-white/10" title="Fullscreen (F)">
+              <i data-lucide="maximize" class="w-3.5 h-3.5"></i>
+            </button>
+            <button onclick="app.closeFloatingPanel()" class="p-1 rounded-full bg-black/60 hover:bg-black/90 text-white transition-colors border border-white/10" title="Close">
+              <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Pristine Video Wrapper (Removes YouTube top title & watermark) -->
+        <div class="pristine-video-wrapper w-full h-full relative" id="main-video-wrapper">
+          <div class="video-click-catcher" onclick="app.togglePlayPause()" title="Click to Play/Pause"></div>
+          <div id="youtube-iframe-holder" class="w-full h-full"></div>
+        </div>
+      </div>
+
+      <!-- Cinema Controls Bar (Bottom overlay in fullscreen video) -->
+      <div id="video-cinema-controls" class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/95 via-black/70 to-transparent z-30 hidden flex-col gap-3">
+        <div class="w-full flex items-center gap-3 text-xs text-zinc-400 font-mono">
+          <span id="cinema-time-current">0:00</span>
+          <input id="cinema-progress" type="range" min="0" max="100" value="0" class="player-slider flex-1">
+          <span id="cinema-time-duration">3:20</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span id="cinema-title" class="font-bold text-sm text-white">Song Title</span>
+            <span class="text-xs text-zinc-400">•</span>
+            <span id="cinema-artist" class="text-xs text-zinc-400">Artist</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <button onclick="app.playPrev()" class="p-2 text-zinc-400 hover:text-white transition-colors">
+              <i data-lucide="skip-back" class="w-5 h-5 fill-current"></i>
+            </button>
+            <button onclick="app.togglePlayPause()" class="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shadow">
+              <i data-lucide="play" id="cinema-play-icon" class="w-5 h-5 fill-current translate-x-0.5"></i>
+            </button>
+            <button onclick="app.playNext()" class="p-2 text-zinc-400 hover:text-white transition-colors">
+              <i data-lucide="skip-forward" class="w-5 h-5 fill-current"></i>
+            </button>
+
+            <!-- Resolution Selector in Cinema Fullscreen -->
+            <div class="relative inline-block text-left" id="cinema-quality-container">
+              <button onclick="app.toggleQualityMenu('cinema')" class="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition-all flex items-center gap-1" title="Select Resolution">
+                <span id="cinema-quality-label">1080p HD</span>
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-zinc-400"></i>
+              </button>
+              <div id="cinema-quality-dropdown" class="hidden absolute right-0 bottom-full mb-2 w-32 bg-[#181818]/95 backdrop-blur-md border border-[#333] rounded-lg shadow-2xl py-1 z-50 text-xs">
+                <button class="w-full text-left px-3 py-1.5 hover:bg-[#282828] text-white flex items-center justify-between font-medium" onclick="app.changeQuality('hd1080')">1080p HD</button>
+                <button class="w-full text-left px-3 py-1.5 hover:bg-[#282828] text-white flex items-center justify-between font-medium" onclick="app.changeQuality('hd720')">720p HD</button>
+                <button class="w-full text-left px-3 py-1.5 hover:bg-[#282828] text-white flex items-center justify-between font-medium" onclick="app.changeQuality('large')">480p</button>
+                <button class="w-full text-left px-3 py-1.5 hover:bg-[#282828] text-white flex items-center justify-between font-medium" onclick="app.changeQuality('medium')">360p</button>
+                <button class="w-full text-left px-3 py-1.5 hover:bg-[#282828] text-white flex items-center justify-between font-medium" onclick="app.changeQuality('auto')">Auto</button>
+              </div>
+            </div>
+
+            <button onclick="app.toggleFullscreen()" class="p-2 text-zinc-300 hover:text-white transition-colors" title="Exit Cinema Fullscreen (Esc or F)">
+              <i data-lucide="minimize-2" class="w-5 h-5"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOBILE BOTTOM MINI-PLAYER & NAVIGATION BAR (Phone Only) -->
+  <div class="flex md:hidden flex-col fixed bottom-0 left-0 right-0 z-40 select-none">
+    
+    <!-- Mobile Mini Player (Tap anywhere to expand Fullscreen Now-Playing) -->
+    <div id="mobile-mini-player" class="bg-[#181818]/95 backdrop-blur-md border-t border-[#262626] h-14 px-3 flex items-center justify-between relative shadow-2xl">
+      <!-- Live Red Progress Line along the top -->
+      <div id="mobile-mini-progress" class="absolute top-0 left-0 h-[2px] bg-ytm-red w-0 transition-all"></div>
+
+      <!-- Left: Track info -->
+      <div class="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer py-1" onclick="app.toggleFullscreen()">
+        <img id="mobile-player-cover" src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80" referrerpolicy="no-referrer" class="w-10 h-10 rounded-lg object-cover shrink-0 shadow border border-white/5" alt="Cover">
+        <div class="min-w-0 flex-1 pr-2">
+          <div id="mobile-player-title" class="font-bold text-xs text-white truncate">Select a track</div>
+          <div id="mobile-player-artist" class="text-[10px] text-zinc-400 truncate">Cadence Music</div>
+        </div>
+      </div>
+
+      <!-- Right: Action Buttons -->
+      <div class="flex items-center gap-1 shrink-0">
+        <!-- Video toggle -->
+        <button onclick="app.toggleVideoPanel()" class="p-2 text-zinc-300 hover:text-white" title="Toggle Video">
+          <i data-lucide="tv" class="w-4 h-4 text-ytm-red"></i>
+        </button>
+        <!-- Lyrics toggle -->
+        <button onclick="app.toggleLyrics()" class="p-2 text-zinc-300 hover:text-white" title="Lyrics">
+          <i data-lucide="mic-2" class="w-4 h-4"></i>
+        </button>
+        <!-- Play / Pause -->
+        <button onclick="app.togglePlayPause()" class="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center shadow hover:scale-105 active:scale-95 transition-transform mx-1">
+          <i data-lucide="play" id="mobile-play-icon" class="w-4 h-4 fill-current translate-x-0.5"></i>
+        </button>
+        <!-- Next -->
+        <button onclick="app.playNext()" class="p-2 text-zinc-300 hover:text-white" title="Next">
+          <i data-lucide="skip-forward" class="w-4 h-4 fill-current"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation Bar (Home, Search, Explore, Library) -->
+    <nav class="h-14 bg-[#0d0d0d] border-t border-[#1e1e1e] flex items-center justify-around px-2 z-40">
+      <button class="mobile-nav-btn active flex flex-col items-center gap-1 text-white py-1 px-3 transition-colors" data-view="home" onclick="app.navigate('home')">
+        <i data-lucide="home" class="w-5 h-5"></i>
+        <span class="text-[10px] font-semibold">Home</span>
+      </button>
+      <button class="mobile-nav-btn flex flex-col items-center gap-1 text-zinc-400 hover:text-white py-1 px-3 transition-colors" onclick="app.focusMobileSearch()">
+        <i data-lucide="search" class="w-5 h-5"></i>
+        <span class="text-[10px] font-semibold">Search</span>
+      </button>
+      <button class="mobile-nav-btn flex flex-col items-center gap-1 text-zinc-400 hover:text-white py-1 px-3 transition-colors" data-view="explore" onclick="app.navigate('explore')">
+        <i data-lucide="compass" class="w-5 h-5"></i>
+        <span class="text-[10px] font-semibold">Explore</span>
+      </button>
+      <button class="mobile-nav-btn flex flex-col items-center gap-1 text-zinc-400 hover:text-white py-1 px-3 transition-colors" data-view="library" onclick="app.navigate('library')">
+        <i data-lucide="library" class="w-5 h-5"></i>
+        <span class="text-[10px] font-semibold">Library</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- MODAL: ADD CUSTOM SONG / URL -->
+  <div id="custom-track-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-[#212121] border border-[#383838] w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-[#333] pb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="radio" class="w-6 h-6 text-fuchsia-500"></i>
+          <h3 class="font-bold text-lg">Stream Any Song</h3>
+        </div>
+        <button onclick="app.closeModal('custom-track-modal')" class="p-1 text-ytm-muted hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-ytm-muted">
+        Paste any direct song link or YouTube Video ID to stream it directly inside Cadence with full player controls.
+      </p>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-zinc-300 mb-1">Song Link or Video ID</label>
+          <input 
+            id="custom-yt-input" 
+            type="text" 
+            placeholder="e.g. https://www.youtube.com/watch?v=J7p4bzqLvCw or J7p4bzqLvCw" 
+            class="w-full bg-[#161616] border border-[#383838] rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-fuchsia-500"
+          >
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-zinc-300 mb-1">Track Title (Optional)</label>
+          <input 
+            id="custom-title-input" 
+            type="text" 
+            placeholder="e.g. Favorite Song" 
+            class="w-full bg-[#161616] border border-[#383838] rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-fuchsia-500"
+          >
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-zinc-300 mb-1">Artist Name (Optional)</label>
+          <input 
+            id="custom-artist-input" 
+            type="text" 
+            placeholder="e.g. Artist" 
+            class="w-full bg-[#161616] border border-[#383838] rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-fuchsia-500"
+          >
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-[#333]">
+        <button onclick="app.closeModal('custom-track-modal')" class="px-4 py-2 text-xs font-semibold text-zinc-400 hover:text-white rounded-lg">
+          Cancel
+        </button>
+        <button onclick="app.submitCustomTrack()" class="px-5 py-2 text-xs font-semibold bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:opacity-90 text-white rounded-lg flex items-center gap-1.5 shadow">
+          <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i>
+          Play Now
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: IMPORT PLAYLIST & MUSIC TASTE (Spotify, Apple Music, YouTube) -->
+  <div id="import-playlist-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 hidden p-4" onclick="if(event.target === this) app.closeModal('import-playlist-modal')">
+    <div class="bg-[#0e1017] border border-zinc-800 w-full max-w-lg rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- Ambient Theme Glow inside Modal -->
+      <div class="absolute -top-24 -right-24 w-60 h-60 theme-glow-blob-1 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-24 -left-24 w-60 h-60 theme-glow-blob-2 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- Modal Header -->
+      <div class="relative z-10 flex items-center justify-between border-b border-zinc-800/80 pb-3.5">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl theme-accent-gradient flex items-center justify-center text-white shadow-lg">
+            <i data-lucide="download-cloud" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-black text-base text-white">Import Playlists & Taste</h3>
+            <p class="text-[11px] text-zinc-400 font-mono-code">Transfer from Spotify, Apple Music & YouTube</p>
+          </div>
+        </div>
+        <button onclick="app.closeModal('import-playlist-modal')" class="p-2 hover:bg-zinc-800/80 rounded-full text-zinc-400 hover:text-white transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Mode Selector Tabs -->
+      <div class="relative z-10 flex items-center p-1 bg-black/50 border border-zinc-800 rounded-2xl text-xs font-semibold">
+        <button id="import-tab-url" onclick="app.setImportTab('url')" class="flex-1 py-2 rounded-xl bg-zinc-800 text-white shadow transition-all flex items-center justify-center gap-1.5">
+          <i data-lucide="link" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <span>Playlist Link</span>
+        </button>
+        <button id="import-tab-text" onclick="app.setImportTab('text')" class="flex-1 py-2 rounded-xl text-zinc-400 hover:text-white transition-all flex items-center justify-center gap-1.5">
+          <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+          <span>Song List / Text</span>
+        </button>
+        <button id="import-tab-taste" onclick="app.setImportTab('taste')" class="flex-1 py-2 rounded-xl text-zinc-400 hover:text-white transition-all flex items-center justify-center gap-1.5">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span>Taste Profile</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: PLAYLIST LINK (Spotify, YouTube, Apple Music) -->
+      <div id="import-section-url" class="relative z-10 space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-zinc-300 mb-1">Playlist URL</label>
+          <input 
+            id="import-url-input" 
+            type="text" 
+            placeholder="Paste Spotify, Apple Music, or YouTube playlist URL..." 
+            class="w-full bg-[#141620] border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500/80"
+          >
+          <p class="text-[10px] text-zinc-500 font-mono-code mt-1.5">
+            Supported: Spotify playlist links, YouTube playlists, Apple Music links
+          </p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-zinc-300 mb-1">Custom Playlist Name (Optional)</label>
+          <input 
+            id="import-name-input" 
+            type="text" 
+            placeholder="e.g. My Imported Favorites" 
+            class="w-full bg-[#141620] border border-zinc-800 rounded-xl px-3.5 py-2 text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500/80"
+          >
+        </div>
+      </div>
+
+      <!-- TAB 2: TEXT / SONG LIST -->
+      <div id="import-section-text" class="relative z-10 space-y-3 hidden">
+        <div>
+          <label class="block text-xs font-semibold text-zinc-300 mb-1">Paste Track Names (one per line)</label>
+          <textarea 
+            id="import-text-input" 
+            rows="5"
+            placeholder="Artist - Song Title&#10;The Weeknd - Blinding Lights&#10;Dua Lipa - Levitating&#10;Nirvana - Smells Like Teen Spirit" 
+            class="w-full bg-[#141620] border border-zinc-800 rounded-xl p-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500/80 font-mono-code"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- TAB 3: TASTE PROFILE SEEDING -->
+      <div id="import-section-taste" class="relative z-10 space-y-3 hidden">
+        <p class="text-xs text-zinc-400">
+          Pick your favorite musical genres and vibes to tune the vinyl deck's automatic radio algorithm:
+        </p>
+        <div class="grid grid-cols-3 gap-2" id="taste-chips-grid">
+          <button onclick="this.classList.toggle('theme-accent-pill')" class="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition-all text-center">⚡ Synthwave</button>
+          <button onclick="this.classList.toggle('theme-accent-pill')" class="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition-all text-center">🎤 Hip-Hop</button>
+          <button onclick="this.classList.toggle('theme-accent-pill')" class="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition-all text-center">🌙 R&B</button>
+          <button onclick="this.classList.toggle('theme-accent-pill')" class="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition-all text-center">🎸 Rock & Alt</button>
+          <button onclick="this.classList.toggle('theme-accent-pill')" class="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition-all text-center">☕ Lo-Fi Chill</button>
+          <button onclick="this.classList.toggle('theme-accent-pill')" class="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition-all text-center">✨ Pop & Dance</button>
+          <button onclick="this.classList.toggle('theme-accent-pill')" class="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition-all text-center">🪕 Bollywood</button>
+          <button onclick="this.classList.toggle('theme-accent-pill')" class="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition-all text-center">🎹 Electronic</button>
+          <button onclick="this.classList.toggle('theme-accent-pill')" class="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition-all text-center">🌌 Indie</button>
+        </div>
+      </div>
+
+      <!-- Status Feedback message -->
+      <div id="import-status-msg" class="text-xs font-mono-code hidden p-2.5 rounded-xl border"></div>
+
+      <!-- Modal Footer -->
+      <div class="relative z-10 flex justify-end gap-2 pt-2 border-t border-zinc-800/80">
+        <button onclick="app.closeModal('import-playlist-modal')" class="px-4 py-2 text-xs font-semibold text-zinc-400 hover:text-white rounded-xl">
+          Cancel
+        </button>
+        <button id="btn-submit-import" onclick="app.submitImportPlaylist()" class="px-5 py-2 text-xs font-semibold theme-accent-gradient text-white rounded-xl flex items-center gap-1.5 shadow-lg hover:opacity-90 active:scale-95 transition-all">
+          <i data-lucide="check" class="w-3.5 h-3.5"></i>
+          <span>Import to Cadence</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: USER AUTHENTICATION & MULTI-DEVICE CLOUD SYNC -->
+  <div id="auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 hidden p-4" onclick="if(event.target === this) app.closeAuthModal()">
+    <div class="bg-[#0e1017] border border-zinc-800 w-full max-w-md rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- Ambient Theme Glow -->
+      <div class="absolute -top-24 -right-24 w-52 h-52 theme-glow-blob-1 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-24 -left-24 w-52 h-52 theme-glow-blob-2 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- Modal Header -->
+      <div class="relative z-10 flex items-center justify-between border-b border-zinc-800/80 pb-3.5">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl theme-accent-gradient flex items-center justify-center text-white shadow-lg">
+            <i data-lucide="user-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 id="auth-modal-title" class="font-black text-base text-white">Cadence Cloud Account</h3>
+            <p class="text-[11px] text-zinc-400 font-mono-code">Sync your likes & playlists across PC & Phone</p>
+          </div>
+        </div>
+        <button onclick="app.closeAuthModal()" class="p-2 hover:bg-zinc-800/80 rounded-full text-zinc-400 hover:text-white transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Mode Toggle Tabs (Sign In vs Create Account) -->
+      <div class="relative z-10 flex p-1 bg-zinc-900/90 rounded-2xl border border-zinc-800/80 text-xs font-semibold">
+        <button id="auth-tab-login" onclick="app.switchAuthMode('login')" class="flex-1 py-2 rounded-xl text-white bg-zinc-800/90 shadow-sm transition-all text-center">
+          Sign In
+        </button>
+        <button id="auth-tab-register" onclick="app.switchAuthMode('register')" class="flex-1 py-2 rounded-xl text-zinc-400 hover:text-white transition-all text-center">
+          Create Account
+        </button>
+      </div>
+
+      <!-- Error Notice Banner -->
+      <div id="auth-error-banner" class="hidden relative z-10 px-3.5 py-2.5 rounded-xl bg-rose-950/40 border border-rose-800/60 text-xs text-rose-300 flex items-center gap-2">
+        <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 text-rose-400"></i>
+        <span id="auth-error-text">Invalid credentials</span>
+      </div>
+
+      <!-- Auth Form -->
+      <form id="auth-form" onsubmit="event.preventDefault(); app.handleAuthSubmit()" class="relative z-10 space-y-3.5">
+        <div>
+          <label class="block text-xs font-medium text-zinc-300 mb-1">Username</label>
+          <div class="relative flex items-center">
+            <i data-lucide="at-sign" class="w-4 h-4 absolute left-3.5 text-zinc-500"></i>
+            <input 
+              id="auth-username" 
+              type="text" 
+              required 
+              autocomplete="username" 
+              placeholder="e.g. musiclover" 
+              class="w-full bg-zinc-900/90 text-sm text-white placeholder-zinc-500 rounded-xl pl-10 pr-3.5 py-2.5 border border-zinc-800 focus:border-violet-500 outline-none transition-colors"
+            >
+          </div>
+        </div>
+
+        <div id="auth-displayname-group" class="hidden">
+          <label class="block text-xs font-medium text-zinc-300 mb-1">Display Name (Optional)</label>
+          <div class="relative flex items-center">
+            <i data-lucide="smile" class="w-4 h-4 absolute left-3.5 text-zinc-500"></i>
+            <input 
+              id="auth-displayname" 
+              type="text" 
+              placeholder="e.g. Alex" 
+              class="w-full bg-zinc-900/90 text-sm text-white placeholder-zinc-500 rounded-xl pl-10 pr-3.5 py-2.5 border border-zinc-800 focus:border-violet-500 outline-none transition-colors"
+            >
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-zinc-300 mb-1">Password</label>
+          <div class="relative flex items-center">
+            <i data-lucide="lock" class="w-4 h-4 absolute left-3.5 text-zinc-500"></i>
+            <input 
+              id="auth-password" 
+              type="password" 
+              required 
+              autocomplete="current-password" 
+              placeholder="••••••••" 
+              class="w-full bg-zinc-900/90 text-sm text-white placeholder-zinc-500 rounded-xl pl-10 pr-3.5 py-2.5 border border-zinc-800 focus:border-violet-500 outline-none transition-colors"
+            >
+          </div>
+        </div>
+
+        <button 
+          id="auth-submit-btn" 
+          type="submit" 
+          class="w-full py-2.5 rounded-xl theme-accent-gradient text-white font-bold text-sm shadow-lg hover:brightness-110 active:scale-98 transition-all flex items-center justify-center gap-2 mt-2"
+        >
+          <span id="auth-submit-text">Sign In</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </form>
+
+      <!-- Sync Guarantee Footnote -->
+      <div class="relative z-10 pt-2 border-t border-zinc-800/80 text-center">
+        <p class="text-[11px] text-zinc-500 flex items-center justify-center gap-1.5">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <span>Any likes, playlists, and taste sync across your phone and PC automatically.</span>
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: ACCOUNT & THEME SETTINGS -->
+  <div id="settings-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 hidden p-4" onclick="if(event.target === this) app.closeSettingsModal()">
+    <div class="bg-[#0e1017] border border-zinc-800 w-full max-w-lg rounded-3xl p-6 sm:p-7 shadow-2xl space-y-6 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- Ambient Theme Glow inside Modal -->
+      <div class="absolute -top-24 -right-24 w-60 h-60 theme-glow-blob-1 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-24 -left-24 w-60 h-60 theme-glow-blob-2 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- Modal Header -->
+      <div class="relative z-10 flex items-center justify-between border-b border-zinc-800/80 pb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl theme-accent-gradient flex items-center justify-center text-white shadow-lg">
+            <i data-lucide="palette" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-black text-base text-white">Account & Appearance</h3>
+            <p class="text-[11px] text-zinc-400 font-mono-code">Personalize your Cadence Vinyl experience</p>
+          </div>
+        </div>
+        <button onclick="app.closeSettingsModal()" class="p-2 hover:bg-zinc-800/80 rounded-full text-zinc-400 hover:text-white transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Dynamic User Profile Card -->
+      <div class="relative z-10 p-3.5 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div id="settings-user-avatar" class="w-12 h-12 rounded-2xl theme-accent-gradient flex items-center justify-center font-bold text-lg text-white shadow-md theme-avatar-ring overflow-hidden">
+            <span id="settings-user-initial">M</span>
+          </div>
+          <div>
+            <div class="font-bold text-sm text-white flex items-center gap-2">
+              <span id="settings-user-display-name">Guest Mode</span>
+              <span id="settings-user-badge" class="text-[10px] font-mono-code px-2 py-0.5 rounded-full bg-zinc-700/60 text-zinc-300 border border-zinc-600/50">LOCAL ONLY</span>
+            </div>
+            <div id="settings-user-sub" class="text-xs text-zinc-400 font-mono-code">Sign in to sync with phone</div>
+          </div>
+        </div>
+        <div>
+          <button 
+            id="settings-auth-btn" 
+            onclick="app.openAuthModal('login'); app.closeSettingsModal()" 
+            class="px-3 py-1.5 rounded-xl bg-violet-600/20 hover:bg-violet-600/30 text-violet-300 border border-violet-500/40 text-xs font-semibold transition-all"
+          >
+            Sign In / Sync
+          </button>
+        </div>
+      </div></div>
+
+      <!-- Color Themes Section -->
+      <div class="relative z-10 space-y-3">
+        <div class="flex items-center justify-between">
+          <label class="text-xs font-bold uppercase tracking-wider text-zinc-300 font-mono-code flex items-center gap-2">
+            <span>Color Themes</span>
+            <span id="current-theme-badge" class="text-[10px] px-2 py-0.5 rounded-full theme-accent-pill uppercase font-mono-code font-bold">Neon Violet</span>
+          </label>
+          <span class="text-[10px] font-mono-code text-zinc-500">5 High-Fidelity Palettes</span>
+        </div>
+
+        <!-- 5 Theme Selectors -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="theme-selection-grid">
+          
+          <!-- Theme 1: Neon Violet -->
+          <div onclick="app.setTheme('violet')" data-theme-card="violet" class="theme-card p-3 rounded-2xl bg-zinc-900/80 hover:bg-zinc-800/80 border border-zinc-800 cursor-pointer transition-all flex items-center justify-between group active">
+            <div class="flex items-center gap-3">
+              <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-violet-600 to-fuchsia-500 shadow-md ring-2 ring-violet-500/30 shrink-0"></div>
+              <div>
+                <div class="text-xs font-bold text-white group-hover:text-violet-300 transition-colors">Neon Violet</div>
+                <div class="text-[10px] text-zinc-400 font-mono-code">Cadence Classic & Fuchsia</div>
+              </div>
+            </div>
+            <span class="theme-check text-xs font-bold font-mono-code text-violet-400 opacity-0 group-[.active]:opacity-100">✓ Active</span>
+          </div>
+
+          <!-- Theme 2: Matrix Emerald -->
+          <div onclick="app.setTheme('emerald')" data-theme-card="emerald" class="theme-card p-3 rounded-2xl bg-zinc-900/80 hover:bg-zinc-800/80 border border-zinc-800 cursor-pointer transition-all flex items-center justify-between group">
+            <div class="flex items-center gap-3">
+              <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 shadow-md ring-2 ring-emerald-500/30 shrink-0"></div>
+              <div>
+                <div class="text-xs font-bold text-white group-hover:text-emerald-300 transition-colors">Matrix Emerald</div>
+                <div class="text-[10px] text-zinc-400 font-mono-code">Cyber Mint & Phosphor</div>
+              </div>
+            </div>
+            <span class="theme-check text-xs font-bold font-mono-code text-emerald-400 opacity-0 group-[.active]:opacity-100">✓ Active</span>
+          </div>
+
+          <!-- Theme 3: Solar Amber -->
+          <div onclick="app.setTheme('amber')" data-theme-card="amber" class="theme-card p-3 rounded-2xl bg-zinc-900/80 hover:bg-zinc-800/80 border border-zinc-800 cursor-pointer transition-all flex items-center justify-between group">
+            <div class="flex items-center gap-3">
+              <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 shadow-md ring-2 ring-amber-500/30 shrink-0"></div>
+              <div>
+                <div class="text-xs font-bold text-white group-hover:text-amber-300 transition-colors">Solar Amber</div>
+                <div class="text-[10px] text-zinc-400 font-mono-code">Warm Gold & Vintage Tape</div>
+              </div>
+            </div>
+            <span class="theme-check text-xs font-bold font-mono-code text-amber-400 opacity-0 group-[.active]:opacity-100">✓ Active</span>
+          </div>
+
+          <!-- Theme 4: Phantom Crimson -->
+          <div onclick="app.setTheme('crimson')" data-theme-card="crimson" class="theme-card p-3 rounded-2xl bg-zinc-900/80 hover:bg-zinc-800/80 border border-zinc-800 cursor-pointer transition-all flex items-center justify-between group">
+            <div class="flex items-center gap-3">
+              <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-red-600 to-rose-500 shadow-md ring-2 ring-red-500/30 shrink-0"></div>
+              <div>
+                <div class="text-xs font-bold text-white group-hover:text-red-300 transition-colors">Phantom Crimson</div>
+                <div class="text-[10px] text-zinc-400 font-mono-code">Dark Rouge & Neon Red</div>
+              </div>
+            </div>
+            <span class="theme-check text-xs font-bold font-mono-code text-red-400 opacity-0 group-[.active]:opacity-100">✓ Active</span>
+          </div>
+
+          <!-- Theme 5: Electric Cyan -->
+          <div onclick="app.setTheme('cyan')" data-theme-card="cyan" class="theme-card p-3 rounded-2xl bg-zinc-900/80 hover:bg-zinc-800/80 border border-zinc-800 cursor-pointer transition-all flex items-center justify-between group sm:col-span-2">
+            <div class="flex items-center gap-3">
+              <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-cyan-400 to-blue-600 shadow-md ring-2 ring-cyan-500/30 shrink-0"></div>
+              <div>
+                <div class="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors">Electric Cyan</div>
+                <div class="text-[10px] text-zinc-400 font-mono-code">Deep Oceanic & High Voltage Blue</div>
+              </div>
+            </div>
+            <span class="theme-check text-xs font-bold font-mono-code text-cyan-400 opacity-0 group-[.active]:opacity-100">✓ Active</span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Additional Vinyl & Playback Options -->
+      <div class="relative z-10 pt-2 border-t border-zinc-800/80 flex items-center justify-between text-xs">
+        <span class="text-zinc-400 font-mono-code">Turntable Motor Speed:</span>
+        <div class="flex items-center gap-2">
+          <button onclick="app.setTurntableRpm(33)" class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-mono-code transition-colors">33⅓ RPM</button>
+          <button onclick="app.setTurntableRpm(45)" class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-mono-code transition-colors">45 RPM</button>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="relative z-10 flex justify-end pt-2 border-t border-zinc-800/80">
+        <button onclick="app.closeSettingsModal()" class="px-6 py-2 rounded-xl theme-accent-gradient text-white font-bold text-xs shadow-lg hover:opacity-90 active:scale-95 transition-all">
+          Done
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: AUDIO EQUALIZER & BASS BOOST (Web Audio API) -->
+  <div id="equalizer-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-[#141620] border border-zinc-700/80 w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-5 text-white relative">
+      <!-- Header -->
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+            <i data-lucide="activity" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-base tracking-tight">Audio Equalizer & Sound Profiles</h3>
+            <p class="text-[11px] text-zinc-400 font-mono-code">5-Band Studio Parametric EQ & Volume Leveler</p>
+          </div>
+        </div>
+        <button onclick="app.closeModal('equalizer-modal')" class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Presets Row -->
+      <div>
+        <label class="block text-xs font-bold text-zinc-400 mb-2 uppercase tracking-wider font-mono-code">Sound Profiles</label>
+        <div class="flex flex-wrap gap-1.5" id="eq-presets-container">
+          <button onclick="app.setEqPreset('flat')" data-eq-preset="flat" class="px-3 py-1 rounded-xl text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">Flat</button>
+          <button onclick="app.setEqPreset('bass_boost')" data-eq-preset="bass_boost" class="px-3 py-1 rounded-xl text-xs font-semibold bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800">🔥 Bass Boost</button>
+          <button onclick="app.setEqPreset('vocal_boost')" data-eq-preset="vocal_boost" class="px-3 py-1 rounded-xl text-xs font-semibold bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800">🎤 Vocal</button>
+          <button onclick="app.setEqPreset('electronic')" data-eq-preset="electronic" class="px-3 py-1 rounded-xl text-xs font-semibold bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800">⚡ Electronic</button>
+          <button onclick="app.setEqPreset('rock')" data-eq-preset="rock" class="px-3 py-1 rounded-xl text-xs font-semibold bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800">🎸 Rock</button>
+          <button onclick="app.setEqPreset('acoustic')" data-eq-preset="acoustic" class="px-3 py-1 rounded-xl text-xs font-semibold bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800">🎻 Acoustic</button>
+          <button onclick="app.setEqPreset('lofi_warmth')" data-eq-preset="lofi_warmth" class="px-3 py-1 rounded-xl text-xs font-semibold bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800">☕ Lo-Fi</button>
+        </div>
+      </div>
+
+      <!-- 5-Band Sliders -->
+      <div class="bg-zinc-950/70 p-4 rounded-2xl border border-zinc-800/80">
+        <div class="grid grid-cols-5 gap-2 text-center">
+          <div class="flex flex-col items-center gap-2">
+            <span id="eq-val-0" class="text-[10px] font-mono-code text-emerald-400 font-bold">+0dB</span>
+            <input type="range" id="eq-slider-0" min="-12" max="12" step="1" value="0" class="eq-slider" oninput="app.handleEqSlider(0, this.value)">
+            <span class="text-[10px] font-mono-code text-zinc-400">60Hz</span>
+            <span class="text-[9px] text-zinc-600">Sub-Bass</span>
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <span id="eq-val-1" class="text-[10px] font-mono-code text-emerald-400 font-bold">+0dB</span>
+            <input type="range" id="eq-slider-1" min="-12" max="12" step="1" value="0" class="eq-slider" oninput="app.handleEqSlider(1, this.value)">
+            <span class="text-[10px] font-mono-code text-zinc-400">250Hz</span>
+            <span class="text-[9px] text-zinc-600">Bass</span>
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <span id="eq-val-2" class="text-[10px] font-mono-code text-emerald-400 font-bold">+0dB</span>
+            <input type="range" id="eq-slider-2" min="-12" max="12" step="1" value="0" class="eq-slider" oninput="app.handleEqSlider(2, this.value)">
+            <span class="text-[10px] font-mono-code text-zinc-400">1kHz</span>
+            <span class="text-[9px] text-zinc-600">Mid</span>
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <span id="eq-val-3" class="text-[10px] font-mono-code text-emerald-400 font-bold">+0dB</span>
+            <input type="range" id="eq-slider-3" min="-12" max="12" step="1" value="0" class="eq-slider" oninput="app.handleEqSlider(3, this.value)">
+            <span class="text-[10px] font-mono-code text-zinc-400">4kHz</span>
+            <span class="text-[9px] text-zinc-600">Presence</span>
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <span id="eq-val-4" class="text-[10px] font-mono-code text-emerald-400 font-bold">+0dB</span>
+            <input type="range" id="eq-slider-4" min="-12" max="12" step="1" value="0" class="eq-slider" oninput="app.handleEqSlider(4, this.value)">
+            <span class="text-[10px] font-mono-code text-zinc-400">12kHz</span>
+            <span class="text-[9px] text-zinc-600">Treble</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Volume Normalization / Compressor Toggle -->
+      <div class="flex items-center justify-between p-3 rounded-2xl bg-zinc-900/60 border border-zinc-800">
+        <div class="flex items-center gap-2.5">
+          <i data-lucide="sliders-horizontal" class="w-4 h-4 text-emerald-400"></i>
+          <div>
+            <div class="text-xs font-bold text-white">Dynamic Volume Normalization</div>
+            <div class="text-[10px] text-zinc-400">Levels out track volume bursts (ReplayGain)</div>
+          </div>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="eq-norm-toggle" checked onchange="app.toggleNormalization(this.checked)" class="sr-only peer">
+          <div class="w-9 h-5 bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+        </label>
+      </div>
+
+      <div class="flex justify-between items-center pt-2 border-t border-zinc-800">
+        <button onclick="app.resetEq()" class="text-xs text-zinc-400 hover:text-white font-mono-code">Reset to Default</button>
+        <button onclick="app.closeModal('equalizer-modal')" class="px-5 py-2 rounded-xl bg-emerald-500 text-black font-bold text-xs hover:bg-emerald-400 shadow-lg">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SLEEP TIMER -->
+  <div id="sleep-timer-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-[#141620] border border-zinc-700/80 w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-4 text-white relative">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30">
+            <i data-lucide="moon" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-base tracking-tight">Sleep Timer</h3>
+            <p id="sleep-timer-status" class="text-[11px] text-zinc-400 font-mono-code">Timer is currently inactive</p>
+          </div>
+        </div>
+        <button onclick="app.closeModal('sleep-timer-modal')" class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-1.5" id="sleep-timer-options">
+        <button onclick="app.setSleepTimer(15)" class="w-full text-left p-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 hover:border-indigo-500/40 text-xs font-semibold flex items-center justify-between transition-all">
+          <span>15 Minutes</span>
+          <span class="text-[10px] text-zinc-500 font-mono-code">Quick nap</span>
+        </button>
+        <button onclick="app.setSleepTimer(30)" class="w-full text-left p-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 hover:border-indigo-500/40 text-xs font-semibold flex items-center justify-between transition-all">
+          <span>30 Minutes</span>
+          <span class="text-[10px] text-zinc-500 font-mono-code">Bedtime standard</span>
+        </button>
+        <button onclick="app.setSleepTimer(45)" class="w-full text-left p-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 hover:border-indigo-500/40 text-xs font-semibold flex items-center justify-between transition-all">
+          <span>45 Minutes</span>
+          <span class="text-[10px] text-zinc-500 font-mono-code">Deep relax</span>
+        </button>
+        <button onclick="app.setSleepTimer(60)" class="w-full text-left p-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 hover:border-indigo-500/40 text-xs font-semibold flex items-center justify-between transition-all">
+          <span>1 Hour</span>
+          <span class="text-[10px] text-zinc-500 font-mono-code">Extended sleep</span>
+        </button>
+        <button onclick="app.setSleepTimer('end_of_track')" class="w-full text-left p-3 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 hover:border-indigo-500/40 text-xs font-semibold flex items-center justify-between transition-all">
+          <span>End of Current Track</span>
+          <span class="text-[10px] text-zinc-500 font-mono-code">When song ends</span>
+        </button>
+      </div>
+
+      <!-- Custom Specific Time Option -->
+      <div class="p-3 rounded-2xl bg-zinc-900/70 border border-zinc-800/80 space-y-2.5">
+        <div class="flex items-center justify-between text-xs font-semibold text-zinc-300">
+          <span class="flex items-center gap-1.5">
+            <i data-lucide="clock" class="w-3.5 h-3.5 text-indigo-400"></i>
+            <span>Custom Specific Time</span>
+          </span>
+          <span class="text-[10px] text-zinc-500 font-mono-code">Enter any minutes</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="relative flex-1">
+            <input 
+              id="custom-sleep-input" 
+              type="number" 
+              min="1" 
+              max="720" 
+              placeholder="e.g. 20, 75, 120" 
+              class="w-full bg-black/60 border border-zinc-700/80 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500 font-mono-code pr-12"
+              onkeydown="if(event.key==='Enter') app.setCustomSleepTimer()"
+            >
+            <span class="absolute right-3 top-2 text-[11px] text-zinc-400 font-mono-code select-none pointer-events-none">mins</span>
+          </div>
+          <button 
+            id="btn-set-custom-sleep"
+            onclick="app.setCustomSleepTimer()" 
+            class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-md shrink-0 flex items-center gap-1"
+          >
+            <i data-lucide="play" class="w-3 h-3 fill-current"></i>
+            <span>Set</span>
+          </button>
+        </div>
+        <!-- Quick Preset Pills for Custom -->
+        <div class="flex items-center gap-1.5 pt-0.5">
+          <span class="text-[10px] text-zinc-500">Quick:</span>
+          <button onclick="document.getElementById('custom-sleep-input').value = 5; app.setCustomSleepTimer()" class="px-2 py-0.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-[10px] font-mono-code text-zinc-300">5m</button>
+          <button onclick="document.getElementById('custom-sleep-input').value = 10; app.setCustomSleepTimer()" class="px-2 py-0.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-[10px] font-mono-code text-zinc-300">10m</button>
+          <button onclick="document.getElementById('custom-sleep-input').value = 20; app.setCustomSleepTimer()" class="px-2 py-0.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-[10px] font-mono-code text-zinc-300">20m</button>
+          <button onclick="document.getElementById('custom-sleep-input').value = 90; app.setCustomSleepTimer()" class="px-2 py-0.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-[10px] font-mono-code text-zinc-300">90m</button>
+          <button onclick="document.getElementById('custom-sleep-input').value = 120; app.setCustomSleepTimer()" class="px-2 py-0.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-[10px] font-mono-code text-zinc-300">2h</button>
+        </div>
+      </div>
+
+      <div class="pt-2 border-t border-zinc-800 flex justify-between items-center">
+        <button onclick="app.cancelSleepTimer()" class="text-xs text-rose-400 hover:text-rose-300 font-mono-code">Turn Off</button>
+        <button onclick="app.closeModal('sleep-timer-modal')" class="px-4 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: YOUTUBE MUSIC RADIO TUNER -->
+  <div id="radio-tuner-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-[#141620] border border-zinc-700/80 w-full max-w-md rounded-3xl p-6 shadow-2xl space-y-5 text-white relative">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-violet-500/20 text-violet-400 flex items-center justify-center border border-violet-500/30">
+            <i data-lucide="sliders" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-base tracking-tight">Tune Radio</h3>
+            <p class="text-[11px] text-zinc-400 font-mono-code">Customize Automix queue flow</p>
+          </div>
+        </div>
+        <button onclick="app.closeModal('radio-tuner-modal')" class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Slider 1: Artist Variety -->
+      <div class="space-y-1.5">
+        <div class="flex justify-between text-xs font-semibold">
+          <span class="text-zinc-300">Artist Variety</span>
+          <span id="tuner-variety-label" class="text-violet-400 font-mono-code">Balanced</span>
+        </div>
+        <input type="range" id="tuner-variety-slider" min="1" max="3" value="2" class="tuner-slider" oninput="app.updateTunerLabels()">
+        <div class="flex justify-between text-[10px] text-zinc-500 font-mono-code">
+          <span>Familiar</span>
+          <span>Blend</span>
+          <span>Discover</span>
+        </div>
+      </div>
+
+      <!-- Slider 2: Song Selection -->
+      <div class="space-y-1.5">
+        <div class="flex justify-between text-xs font-semibold">
+          <span class="text-zinc-300">Song Selection</span>
+          <span id="tuner-selection-label" class="text-violet-400 font-mono-code">Popular & Deep Mix</span>
+        </div>
+        <input type="range" id="tuner-selection-slider" min="1" max="3" value="2" class="tuner-slider" oninput="app.updateTunerLabels()">
+        <div class="flex justify-between text-[10px] text-zinc-500 font-mono-code">
+          <span>Deep Cuts</span>
+          <span>Mixed</span>
+          <span>Top Hits</span>
+        </div>
+      </div>
+
+      <!-- Slider 3: Energy / Mood -->
+      <div class="space-y-1.5">
+        <div class="flex justify-between text-xs font-semibold">
+          <span class="text-zinc-300">Energy & Mood</span>
+          <span id="tuner-mood-label" class="text-violet-400 font-mono-code">All Vibes</span>
+        </div>
+        <input type="range" id="tuner-mood-slider" min="1" max="3" value="2" class="tuner-slider" oninput="app.updateTunerLabels()">
+        <div class="flex justify-between text-[10px] text-zinc-500 font-mono-code">
+          <span>Chill</span>
+          <span>Standard</span>
+          <span>Upbeat</span>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-zinc-800 flex justify-end gap-2">
+        <button onclick="app.closeModal('radio-tuner-modal')" class="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold">Cancel</button>
+        <button onclick="app.applyRadioTuner()" class="px-5 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-bold text-xs hover:opacity-90 shadow-lg">Apply Tuning</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PRO KEYBOARD SHORTCUTS -->
+  <div id="keyboard-shortcuts-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-[#141620] border border-zinc-700/80 w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-5 text-white relative">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30">
+            <i data-lucide="keyboard" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-base tracking-tight">Keyboard Shortcuts</h3>
+            <p class="text-[11px] text-zinc-400 font-mono-code">Pro controls for fast playback navigation</p>
+          </div>
+        </div>
+        <button onclick="app.closeModal('keyboard-shortcuts-modal')" class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5 text-xs">
+        <div class="flex items-center justify-between p-2 rounded-xl bg-zinc-900/60 border border-zinc-800/80">
+          <span class="text-zinc-300">Play / Pause</span>
+          <span class="flex items-center gap-1"><span class="kbd-key">Space</span> or <span class="kbd-key">K</span></span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-xl bg-zinc-900/60 border border-zinc-800/80">
+          <span class="text-zinc-300">Song / Video Mode</span>
+          <span class="kbd-key">V</span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-xl bg-zinc-900/60 border border-zinc-800/80">
+          <span class="text-zinc-300">Seek -5s / +5s</span>
+          <span class="flex items-center gap-1"><span class="kbd-key">J</span> / <span class="kbd-key">L</span></span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-xl bg-zinc-900/60 border border-zinc-800/80">
+          <span class="text-zinc-300">Next Track</span>
+          <span class="kbd-key">N</span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-xl bg-zinc-900/60 border border-zinc-800/80">
+          <span class="text-zinc-300">Previous Track</span>
+          <span class="kbd-key">P</span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-xl bg-zinc-900/60 border border-zinc-800/80">
+          <span class="text-zinc-300">Fullscreen Cinema</span>
+          <span class="kbd-key">F</span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-xl bg-zinc-900/60 border border-zinc-800/80">
+          <span class="text-zinc-300">Mute / Unmute</span>
+          <span class="kbd-key">M</span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-xl bg-zinc-900/60 border border-zinc-800/80">
+          <span class="text-zinc-300">Toggle Queue</span>
+          <span class="kbd-key">Q</span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-xl bg-zinc-900/60 border border-zinc-800/80">
+          <span class="text-zinc-300">Open Equalizer</span>
+          <span class="kbd-key">E</span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-xl bg-zinc-900/60 border border-zinc-800/80">
+          <span class="text-zinc-300">Tune Radio</span>
+          <span class="kbd-key">T</span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-xl bg-zinc-900/60 border border-zinc-800/80">
+          <span class="text-zinc-300">Sleep Timer</span>
+          <span class="kbd-key">S</span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-xl bg-zinc-900/60 border border-zinc-800/80">
+          <span class="text-zinc-300">Download Offline</span>
+          <span class="kbd-key">D</span>
+        </div>
+      </div>
+
+      <div class="pt-2 border-t border-zinc-800 flex justify-end">
+        <button onclick="app.closeModal('keyboard-shortcuts-modal')" class="px-5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold">Got It</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CADENCE TASTE PROFILE & RECOMMENDATIONS ALGORITHM -->
+  <div id="taste-profile-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-[#141620] border border-zinc-700/80 w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-5 text-white relative max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-violet-500/20 text-violet-400 flex items-center justify-center border border-violet-500/30">
+            <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-base tracking-tight">Cadence Taste Engine</h3>
+            <p class="text-[11px] text-zinc-400 font-mono-code">How your listening shapes your recommendations</p>
+          </div>
+        </div>
+        <button onclick="app.closeModal('taste-profile-modal')" class="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Add to Your Taste Section -->
+      <div class="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800/80 space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-zinc-300 uppercase tracking-wider font-mono-code flex items-center gap-1.5">
+            <i data-lucide="user-plus" class="w-3.5 h-3.5 text-violet-400"></i>
+            <span>Add to Your Taste Profile</span>
+          </span>
+          <span class="text-[10px] text-zinc-500 font-mono-code">Personalize Recommendations</span>
+        </div>
+
+        <!-- Custom Artist Input -->
+        <div class="flex items-center gap-2">
+          <div class="relative flex-1">
+            <i data-lucide="search" class="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input 
+              id="taste-input-artist" 
+              type="text" 
+              placeholder="Add favorite artist (e.g. Sonu Nigam, Arijit Singh, The Weeknd)..." 
+              class="w-full bg-zinc-950/80 border border-zinc-700/80 rounded-xl pl-9 pr-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 transition-colors"
+              onkeydown="if(event.key==='Enter') app.addUserTasteArtist()"
+            >
+          </div>
+          <button 
+            onclick="app.addUserTasteArtist()" 
+            class="px-3.5 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-semibold text-white transition-all flex items-center gap-1.5 shrink-0 shadow-md shadow-violet-600/20 active:scale-95"
+          >
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>Add Artist</span>
+          </button>
+        </div>
+
+        <!-- Quick Taste & Genre Presets -->
+        <div class="space-y-1.5 pt-1">
+          <span class="text-[11px] text-zinc-400 font-medium">Quick Taste Presets</span>
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="app.addUserTasteGenre('Bollywood & Indian', 'relax', 'Sonu Nigam')" class="px-2.5 py-1 rounded-lg bg-zinc-800/80 hover:bg-violet-600/20 hover:text-violet-300 border border-zinc-700/60 text-[11px] text-zinc-300 transition-colors flex items-center gap-1">
+              <span>🇮🇳 Bollywood & Classics</span>
+            </button>
+            <button onclick="app.addUserTasteGenre('Synth-pop & Retrowave', 'energize', 'The Weeknd')" class="px-2.5 py-1 rounded-lg bg-zinc-800/80 hover:bg-violet-600/20 hover:text-violet-300 border border-zinc-700/60 text-[11px] text-zinc-300 transition-colors flex items-center gap-1">
+              <span>⚡ Synth-pop & 80s</span>
+            </button>
+            <button onclick="app.addUserTasteGenre('Lo-Fi & Study Chill', 'focus', 'beabadoobee')" class="px-2.5 py-1 rounded-lg bg-zinc-800/80 hover:bg-violet-600/20 hover:text-violet-300 border border-zinc-700/60 text-[11px] text-zinc-300 transition-colors flex items-center gap-1">
+              <span>☕ Lo-Fi & Beats</span>
+            </button>
+            <button onclick="app.addUserTasteGenre('Pop & Global Hits', 'workout', 'Dua Lipa')" class="px-2.5 py-1 rounded-lg bg-zinc-800/80 hover:bg-violet-600/20 hover:text-violet-300 border border-zinc-700/60 text-[11px] text-zinc-300 transition-colors flex items-center gap-1">
+              <span>🔥 Global Pop Hits</span>
+            </button>
+            <button onclick="app.addUserTasteGenre('Hip-Hop & R&B', 'commute', 'Drake')" class="px-2.5 py-1 rounded-lg bg-zinc-800/80 hover:bg-violet-600/20 hover:text-violet-300 border border-zinc-700/60 text-[11px] text-zinc-300 transition-colors flex items-center gap-1">
+              <span>🎤 Hip-Hop & R&B</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Taste Profile Summary -->
+      <div class="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-zinc-300 uppercase tracking-wider font-mono-code">Your Taste Vector</span>
+          <span id="taste-status-badge" class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono-code bg-violet-500/20 text-violet-300 border border-violet-500/30">Developing</span>
+        </div>
+
+        <!-- Top Affinity Artists -->
+        <div class="space-y-2">
+          <span class="text-[11px] text-zinc-400 font-medium">Top Artist Affinities</span>
+          <div id="taste-top-artists" class="space-y-1.5">
+            <!-- Injected via JavaScript -->
+          </div>
+        </div>
+
+        <!-- Top Mood / Genre Weights -->
+        <div class="space-y-2 pt-2 border-t border-zinc-800/60">
+          <span class="text-[11px] text-zinc-400 font-medium">Top Vibes & Genres</span>
+          <div id="taste-top-genres" class="flex flex-wrap gap-1.5">
+            <!-- Injected via JavaScript -->
+          </div>
+        </div>
+      </div>
+
+      <!-- How the Algorithm Works (Visual Blueprint) -->
+      <div class="p-4 rounded-2xl bg-black/40 border border-zinc-800/80 space-y-2.5 text-xs text-zinc-300">
+        <div class="font-bold text-white flex items-center gap-1.5">
+          <i data-lucide="cpu" class="w-4 h-4 text-violet-400"></i>
+          <span>How The Recommendation Algorithm Works</span>
+        </div>
+        <ul class="space-y-1.5 text-[11px] text-zinc-400 list-disc list-inside">
+          <li><span class="text-white font-medium">Full Listens & Replays (+3)</span>: High-replay tracks enter <span class="text-rose-400 font-medium">In Heavy Rotation</span> and weight future mixes.</li>
+          <li><span class="text-white font-medium">Liked Songs (+5)</span>: Primary anchor for <span class="text-violet-400 font-medium">My Supermix</span> (60% favorites + 40% discovery).</li>
+          <li><span class="text-white font-medium">Early Skips (-2)</span>: Skipping before 15s demotes the song and reduces artist frequency in Automix.</li>
+          <li><span class="text-white font-medium">Automix Scoring</span>: Prioritizes similar songs based on cosine similarity with your taste vector.</li>
+        </ul>
+      </div>
+
+      <!-- Quick Interactive Simulation (Try Algorithm) -->
+      <div class="p-3.5 rounded-2xl bg-zinc-900/40 border border-zinc-800 space-y-2">
+        <span class="text-xs font-semibold text-zinc-300">Test & Simulate Taste:</span>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="app.simulateTaste('synthwave')" class="px-3 py-1.5 rounded-xl bg-violet-600/30 hover:bg-violet-600/50 border border-violet-500/40 text-xs font-medium text-white transition-all">
+            Simulate Synth-pop / The Weeknd
+          </button>
+          <button onclick="app.simulateTaste('chill')" class="px-3 py-1.5 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-500/40 text-xs font-medium text-white transition-all">
+            Simulate Chill & Lo-Fi
+          </button>
+          <button onclick="app.resetTasteProfile()" class="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-medium text-zinc-400 hover:text-white transition-all">
+            Reset Taste
+          </button>
+        </div>
+      </div>
+
+      <div class="pt-2 border-t border-zinc-800 flex justify-end">
+        <button onclick="app.closeModal('taste-profile-modal')" class="px-5 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING SONG CONTEXT MENU (Glassmorphism Right-Click Menu) -->
+  <div id="song-context-menu" class="fixed z-[100] hidden bg-[#0d0f17]/95 border border-zinc-700/80 backdrop-blur-2xl rounded-2xl p-1.5 shadow-2xl text-xs select-none w-60 overflow-hidden text-zinc-300">
+    <!-- Header: Mini Track Meta -->
+    <div class="px-2.5 py-2 flex items-center gap-2.5 border-b border-zinc-800/80 mb-1">
+      <img id="ctx-cover" src="" class="w-8 h-8 rounded-lg object-cover ring-1 ring-white/10 shrink-0" alt="Cover">
+      <div class="min-w-0 flex-1">
+        <div id="ctx-title" class="font-bold text-white truncate text-xs">Song Title</div>
+        <div id="ctx-artist" class="text-[10px] text-zinc-400 font-mono-code truncate">Artist</div>
+      </div>
+    </div>
+
+    <!-- Quick Playback Actions -->
+    <div class="space-y-0.5">
+      <button onclick="app.handleContextAction('play_now')" class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-violet-600/20 hover:text-white transition-colors text-left font-medium">
+        <i data-lucide="play" class="w-3.5 h-3.5 text-violet-400"></i>
+        <span>Play Now</span>
+      </button>
+      <button onclick="app.handleContextAction('play_next')" class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors text-left font-medium">
+        <i data-lucide="corner-down-right" class="w-3.5 h-3.5 text-indigo-400"></i>
+        <span>Play Next</span>
+      </button>
+      <button onclick="app.handleContextAction('add_queue')" class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors text-left font-medium">
+        <i data-lucide="list-plus" class="w-3.5 h-3.5 text-blue-400"></i>
+        <span>Add to Queue</span>
+      </button>
+      <button onclick="app.handleContextAction('start_radio')" class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors text-left font-medium">
+        <i data-lucide="radio" class="w-3.5 h-3.5 text-fuchsia-400"></i>
+        <span>Start Radio</span>
+      </button>
+    </div>
+
+    <div class="my-1 border-t border-zinc-800/70"></div>
+
+    <!-- User-Requested Actions -->
+    <div class="space-y-0.5">
+      <button id="ctx-btn-like" onclick="app.handleContextAction('toggle_like')" class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors text-left font-medium">
+        <i id="ctx-like-icon" data-lucide="heart" class="w-3.5 h-3.5 text-rose-500"></i>
+        <span id="ctx-like-label">Like</span>
+      </button>
+      <button onclick="app.handleContextAction('add_to_playlist')" class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors text-left font-medium">
+        <i data-lucide="folder-plus" class="w-3.5 h-3.5 text-amber-400"></i>
+        <span>Add to Playlist...</span>
+      </button>
+      <button onclick="app.handleContextAction('make_background')" class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors text-left font-medium">
+        <i data-lucide="image" class="w-3.5 h-3.5 text-emerald-400"></i>
+        <span>Make Background</span>
+      </button>
+      <button id="ctx-btn-reset-bg" onclick="app.handleContextAction('reset_background')" class="w-full hidden flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 hover:text-amber-300 transition-colors text-left font-medium text-[11px] text-zinc-400">
+        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+        <span>Reset Wallpaper</span>
+      </button>
+      <button onclick="app.handleContextAction('download')" class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors text-left font-medium">
+        <i data-lucide="download" class="w-3.5 h-3.5 text-cyan-400"></i>
+        <span>Download Track</span>
+      </button>
+      <button onclick="app.handleContextAction('share')" class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors text-left font-medium">
+        <i data-lucide="share-2" class="w-3.5 h-3.5 text-purple-400"></i>
+        <span>Share</span>
+      </button>
+    </div>
+
+    <div class="my-1 border-t border-zinc-800/70"></div>
+
+    <!-- Additional Utilities -->
+    <div class="space-y-0.5">
+      <button onclick="app.handleContextAction('view_lyrics')" class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors text-left font-medium">
+        <i data-lucide="mic-2" class="w-3.5 h-3.5 text-yellow-400"></i>
+        <span>View Lyrics</span>
+      </button>
+      <button onclick="app.handleContextAction('copy_youtube_link')" class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors text-left font-medium">
+        <i data-lucide="link" class="w-3.5 h-3.5 text-zinc-400"></i>
+        <span>Copy YouTube Link</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD TO PLAYLIST PICKER -->
+  <div id="playlist-picker-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 hidden p-4" onclick="if(event.target === this) app.closeModal('playlist-picker-modal')">
+    <div class="bg-[#0e1017] border border-zinc-800 w-full max-w-md rounded-3xl p-6 shadow-2xl space-y-4 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div class="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl theme-accent-gradient flex items-center justify-center text-white shadow">
+            <i data-lucide="folder-plus" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-white">Add to Playlist</h3>
+            <p id="picker-track-subtitle" class="text-[11px] text-zinc-400 font-mono-code truncate max-w-[240px]">Select destination playlist</p>
+          </div>
+        </div>
+        <button onclick="app.closeModal('playlist-picker-modal')" class="p-1.5 hover:bg-zinc-800/80 rounded-full text-zinc-400 hover:text-white transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Playlist List -->
+      <div id="playlist-picker-list" class="max-h-56 overflow-y-auto space-y-1.5 pr-1">
+        <!-- Injected via JavaScript -->
+      </div>
+
+      <!-- Create New Playlist Inline -->
+      <div class="pt-2 border-t border-zinc-800/80">
+        <label class="block text-[11px] font-semibold text-zinc-400 mb-1.5">Or Create New Playlist</label>
+        <div class="flex items-center gap-2">
+          <input id="picker-new-playlist-input" type="text" placeholder="New playlist name..." class="flex-1 bg-[#141620] border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500/80">
+          <button onclick="app.createPlaylistFromPicker()" class="px-3.5 py-2 rounded-xl theme-accent-gradient text-white text-xs font-bold shadow hover:opacity-90 transition-all shrink-0">
+            Create & Add
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CADENCE FLOATING TOAST NOTIFICATION -->
+  <div id="cadence-toast" class="fixed bottom-24 left-1/2 -translate-x-1/2 z-[110] bg-[#141622]/95 border border-zinc-700/80 backdrop-blur-2xl text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2.5 pointer-events-none transition-all duration-300 opacity-0 translate-y-3">
+    <i id="cadence-toast-icon" data-lucide="check" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+    <span id="cadence-toast-msg">Notification</span>
+  </div>
+
+  <!-- IMMERSIVE FULL SCREEN NOW PLAYING OVERLAY (Song & Video) -->
+  <div id="fullscreen-overlay" class="fixed inset-0 z-50 bg-[#080808] flex flex-col justify-between p-6 md:p-10 select-none opacity-0 pointer-events-none transition-all duration-300 fs-closed">
+    
+    <!-- Dynamic Ambient Blurred Glow Background -->
+    <div id="fs-ambient-bg" class="absolute inset-0 bg-cover bg-center filter blur-3xl saturate-200 brightness-40 opacity-40 scale-125 transition-all duration-700 pointer-events-none"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/80 pointer-events-none"></div>
+
+    <!-- Top Fullscreen Bar -->
+    <div class="relative z-10 flex items-center justify-between w-full max-w-7xl mx-auto">
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-violet-600 via-fuchsia-500 to-rose-500 flex items-center justify-center text-white shadow">
+          <i data-lucide="radio" class="w-3.5 h-3.5"></i>
+        </div>
+        <span class="font-extrabold text-sm tracking-tight text-white/90">Cadence Cinema</span>
+      </div>
+
+      <!-- Center: Seamless Song vs Video Switcher Pill inside Fullscreen -->
+      <div class="flex items-center bg-black/60 backdrop-blur-md p-1 rounded-full border border-white/10 shadow-lg">
+        <button id="fs-mode-song-btn" class="px-4 py-1 rounded-full text-xs font-bold transition-all text-white bg-white/20 shadow" onclick="app.setFullscreenMode('song')">
+          Song
+        </button>
+        <button id="fs-mode-video-btn" class="px-4 py-1 rounded-full text-xs font-bold transition-all text-zinc-400 hover:text-white" onclick="app.setFullscreenMode('video')">
+          Video
+        </button>
+      </div>
+
+      <!-- Exit & PiP Controls -->
+      <div class="flex items-center gap-2">
+        <button id="btn-cinema-pip" onclick="app.togglePictureInPicture()" class="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-semibold text-white border border-white/10 transition-colors" title="Picture-in-Picture">
+          <i data-lucide="picture-in-picture-2" class="w-3.5 h-3.5 text-cyan-400"></i>
+          <span class="hidden sm:inline">PiP</span>
+        </button>
+        <button onclick="app.toggleFullscreen()" class="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-semibold text-white border border-white/10 transition-colors" title="Exit Fullscreen (Esc or F)">
+          <i data-lucide="minimize-2" class="w-3.5 h-3.5"></i>
+          <span>Exit (Esc)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Center Content: SONG VIEW -->
+    <div id="fs-song-view" class="relative z-10 flex-1 flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 my-auto max-w-6xl mx-auto w-full">
+      <!-- Big Original Album Cover with Glow -->
+      <div class="relative group shrink-0">
+        <img id="fs-cover" src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80" referrerpolicy="no-referrer" class="w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 rounded-2xl object-cover shadow-2xl shadow-black/80 border border-white/10" alt="Album Cover">
+      </div>
+
+      <!-- Song Meta & Scrolling Lyrics -->
+      <div class="flex flex-col justify-center max-w-xl w-full text-left space-y-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-widest text-fuchsia-400 mb-1 block">Now Playing</span>
+          <h1 id="fs-title" class="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight line-clamp-2">Select a track</h1>
+          <h2 id="fs-artist" class="text-lg sm:text-xl font-medium text-zinc-300 mt-1">Cadence Music</h2>
+          <p id="fs-album" class="text-xs text-zinc-500 font-mono mt-0.5">Ready to stream</p>
+        </div>
+
+        <!-- Lyrics Header & Translation in Fullscreen -->
+        <div class="flex items-center justify-between pt-1">
+          <span class="text-xs font-bold uppercase tracking-widest text-fuchsia-400">Interactive Lyrics</span>
+          <button id="fs-btn-translate-lyrics" onclick="app.toggleLyricsTranslation()" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-xs font-semibold text-zinc-200 hover:text-white transition-all shadow" title="Translate lyrics">
+            <i data-lucide="languages" class="w-3.5 h-3.5 text-indigo-300"></i>
+            <span id="fs-translate-btn-label">Translate</span>
+          </button>
+        </div>
+
+        <!-- Lyrics Snippet in Fullscreen -->
+        <div class="h-44 md:h-56 overflow-y-auto pr-2 space-y-2 text-zinc-400 text-base md:text-lg font-medium scrollbar-none" id="fs-lyrics-box">
+          <!-- Injected via JavaScript -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Center Content: VIDEO VIEW (Full Cinema / Pristine zero-overlay) -->
+    <div id="fs-video-view" class="relative z-10 flex-1 flex items-center justify-center my-auto w-full h-full max-w-5xl mx-auto hidden">
+      <div class="pristine-cinema-wrapper w-full aspect-video rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black relative" id="fs-cinema-container">
+        <div class="video-click-catcher" onclick="app.togglePlayPause()" title="Click to Play/Pause"></div>
+      </div>
+    </div>
+
+    <!-- Bottom Fullscreen Controls Bar -->
+    <div class="relative z-10 max-w-3xl mx-auto w-full space-y-3 pb-2">
+      <!-- Scrubber -->
+      <div class="w-full flex items-center gap-3 text-xs text-zinc-400 font-mono">
+        <span id="fs-time-current">0:00</span>
+        <input id="fs-progress" type="range" min="0" max="100" value="0" class="player-slider flex-1">
+        <span id="fs-time-duration">3:20</span>
+      </div>
+
+      <!-- Playback buttons -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <button id="fs-btn-like" onclick="app.toggleLike(app.currentTrack.id)" class="p-2 text-zinc-400 hover:text-white transition-colors" title="Like">
+            <i data-lucide="thumbs-up" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-6">
+          <button onclick="app.toggleShuffle()" class="p-2 text-zinc-400 hover:text-white transition-colors" title="Shuffle">
+            <i data-lucide="shuffle" class="w-5 h-5"></i>
+          </button>
+          <button onclick="app.playPrev()" class="p-2 text-zinc-400 hover:text-white transition-colors" title="Previous">
+            <i data-lucide="skip-back" class="w-6 h-6 fill-current"></i>
+          </button>
+          <button onclick="app.togglePlayPause()" class="w-14 h-14 rounded-full bg-white text-black hover:scale-105 active:scale-95 flex items-center justify-center transition-all shadow-xl">
+            <i data-lucide="play" id="fs-play-icon" class="w-6 h-6 fill-current translate-x-0.5"></i>
+          </button>
+          <button onclick="app.playNext()" class="p-2 text-zinc-400 hover:text-white transition-colors" title="Next">
+            <i data-lucide="skip-forward" class="w-6 h-6 fill-current"></i>
+          </button>
+          <button onclick="app.toggleRepeat()" class="p-2 text-zinc-400 hover:text-white transition-colors" title="Repeat">
+            <i data-lucide="repeat" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <i data-lucide="volume-2" class="w-4 h-4 text-zinc-400"></i>
+          <input id="fs-volume" type="range" min="0" max="100" value="80" class="volume-slider w-20">
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/pro-suite.js"></script>
+  <script src="js/yt-player.js"></script>
+  <script src="js/app.js"></script>
+
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then((reg) => {
+          console.log('[Cadence PWA] Service Worker registered:', reg.scope);
+        }).catch((err) => {
+          console.warn('[Cadence PWA] Registration failed:', err);
+        });
+      });
+    }
+
+    // PWA Install Prompt Handler
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const installPill = document.getElementById('pwa-install-banner');
+      if (installPill) installPill.classList.remove('hidden');
+    });
+
+    window.installCadenceApp = window.installAuraApp = async function() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log('[Cadence PWA] Install outcome:', outcome);
+        deferredPrompt = null;
+        const installPill = document.getElementById('pwa-install-banner');
+        if (installPill) installPill.classList.add('hidden');
+      } else {
+        alert('To install Cadence on your phone:\n• Safari (iOS): Tap Share -> Add to Home Screen\n• Chrome (Android): Tap Menu (⋮) -> Install App / Add to Home Screen');
+      }
+    };
+  </script>
+
+</body>
+</html>

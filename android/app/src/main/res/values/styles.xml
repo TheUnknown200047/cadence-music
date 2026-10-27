@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.CadenceMusic" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:statusBarColor">#07080c</item>
+        <item name="android:navigationBarColor">#07080c</item>
+        <item name="android:windowBackground">#07080c</item>
+    </style>
+</resources>
