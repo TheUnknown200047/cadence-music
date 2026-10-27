@@ -62,17 +62,19 @@ jobs:
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
         with:
           files: Cadence-Music.apk
-          tag_name: v1.0.0
-          name: "Cadence Music v1.0.0 (Standalone Android App)"
+          tag_name: v1.0.1
+          name: "Cadence Music (Auto-Updating Android App)"
           body: |
-            ## 🎵 Cadence Music Standalone Android APK
+            ## 🎵 Cadence Music Standalone Android APK (Auto-Updating)
 
-            Download and install **Cadence-Music.apk** directly on your Android phone!
+            Download and install **Cadence-Music.apk** on your Android phone!
             
+            - **Over-The-Air Automatic Updates**: Any updates you make on GitHub automatically appear in your app without reinstalling!
             - **100% Standalone**: Runs directly on your phone without relying on your PC or servers.
             - **Full Background Audio**: Immersive dark music deck, equalizer, and responsive vinyl turntable.
             - **Offline Storage**: Your liked tracks, custom playlists, and volume preferences are stored directly on your phone.
           draft: false
           prerelease: false
+          overwrite: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
